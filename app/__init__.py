@@ -17,9 +17,15 @@ def create_app(test_config=None):
     else:
         app.config.from_object('config.ProductionConfig')
 
-    from . import models
+    # Import of 'models' module is necessary
+    # so that Flask-Migrate detects changes there
+    from . import models, main
 
+    # Initialize database and migrations
     db.init_app(app)
     migrate.init_app(app, db)
+
+    # Register blueprints
+    app.register_blueprint(main.bp)
 
     return app
