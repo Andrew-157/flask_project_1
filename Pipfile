@@ -10,6 +10,7 @@ python-dotenv = "*"
 flask-migrate = "*"
 flask-login = "*"
 mysqlclient = "*"
+flask-wtf = "*"
 
 [dev-packages]
 autopep8 = "*"
