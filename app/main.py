@@ -5,5 +5,4 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 def index():
-    flash('test message', 'info')
     return render_template('main/index.html')

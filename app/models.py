@@ -9,4 +9,4 @@ class User(UserMixin,  db.Model):
     password = db.Column(db.String(200), nullable=False)
 
     def __str__(self):
-        return self.email
+        return self.username

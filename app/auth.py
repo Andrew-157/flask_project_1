@@ -7,6 +7,18 @@ from . import db
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
+def username_is_valid(username: str) -> bool:
+    # Function to check if user uses only valid
+    # symbols for their username
+    allowed_symbols = "1234567890 \
+                    abcdefghijklmnopqrstuvwxyz\
+                    ABCDEFGHIJKLMNOPQRSTUVWXYZ@.+-_"
+    for symbol in username:
+        if symbol not in allowed_symbols:
+            return False
+    return True
+
+
 @bp.route('/register/', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -29,24 +41,35 @@ def register():
             errors = True
 
         # Check that the entered data is not too long
-        if len(username) > 50:
+        # the existence of email, username and password is checked again
+        # so that if somehow None was passed, that we do not
+        # call 'len' function on None and get
+        if username and len(username) > 50:
             flash('Username is too long.')
             errors = True
-        if len(email) > 120:
+        if email and len(email) > 120:
             flash('Email is too long.')
             errors = True
-        if len(password) > 200:
+        if password and len(password) > 200:
             flash('Password is too long.')
             errors = True
 
         # Check that passwords match
         if password != password1:
-            flash('Passwords did not match')
+            flash('Passwords do not match.')
             errors = True
 
-        # Check that username is not too short
-        if len(username) < 5:
+        # Check that the entered data is not too short
+        if username and len(username) < 5:
             flash('Username is too short.')
+            errors = True
+        if password and len(password) < 8:
+            flash('Password is too short.')
+            errors = True
+
+        # If username was provided, check that it contains only valid symbols
+        if username and not username_is_valid(username):
+            flash('Username is not valid.Letters, digits and @/./+/-/_ only.')
             errors = True
 
         user_with_email = User.query.filter_by(email=email).first()
@@ -60,7 +83,9 @@ def register():
             errors = True
 
         if errors:
-            return redirect(url_for('auth.register'))
+            return render_template('auth/register.html', username=username,
+                                   email=email)
+            # return redirect(url_for('auth.register'))
 
         new_user = User(username=username,
                         email=email,
@@ -98,12 +123,12 @@ def login():
         if not user:
             flash('This email was not found.')
             errors = True
-        if not check_password_hash(user.password, password):
+        if user and not check_password_hash(user.password, password):
             flash('Password does not match.')
             errors = True
 
         if errors:
-            return redirect(url_for('auth.login'))
+            return render_template('auth/login.html', email=email)
 
         login_user(user=user, remember=remember)
         flash('Welcome back to Asklee.', 'success')
@@ -135,15 +160,19 @@ def change_profile():
             flash('Username is required.')
             errors = True
 
-        if len(email) > 120:
+        if email and len(email) > 120:
             flash('Email is too long.')
             errors = True
-        if len(username) > 50:
+        if username and len(username) > 50:
             flash('Username is too long.')
             errors = True
 
-        if len(username) < 5:
+        if username and len(username) < 5:
             flash('Username is too short.')
+            errors = True
+
+        if username and not username_is_valid(username):
+            flash('Username is not valid.Letters, digits and @/./+/-/_ only.')
             errors = True
 
         user_with_email = User.query.filter_by(email=email).first()
@@ -157,7 +186,8 @@ def change_profile():
             errors = True
 
         if errors:
-            return redirect(url_for('auth.change_profile'))
+            return render_template('auth/change_profile.html', username=username, email=email)
+            # return redirect(url_for('auth.change_profile'))
 
         current_user.username = username
         current_user.email = email

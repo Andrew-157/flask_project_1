@@ -7,7 +7,11 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-3 mt-3">
             <label class="form-label">Email:</label>
+            {% if not email %}
             <input type="email" class="form-control" placeholder="Enter email" name="email" required>
+            {% else %}
+            <input type="email" value="{{email}}" class="form-control" placeholder="Enter email" name="email" required>
+            {% endif %}
             {% with messages=get_flashed_messages() %}
             {% if messages %}
             {% for message in messages %}
