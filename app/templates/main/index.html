@@ -1,5 +1,8 @@
 {% extends 'main_base.html' %}
 
 {% block content %}
-<h1>Welcome to Asklee, ask your questions and let other users help to find an answer</h1>
+<div class="container py-5">
+    <h1>Welcome to Asklee, ask your questions and let other users help to find an answer</h1>
+    <a href="{{ url_for('main.post_question')}}">Ask your question</a>
+</div>
 {% endblock %}

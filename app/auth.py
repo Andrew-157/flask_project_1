@@ -77,6 +77,7 @@ def register():
         user_with_email = User.query.filter_by(email=email).first()
         user_with_username = User.query.filter_by(username=username).first()
 
+        # Check that username and email are unique
         if user_with_email:
             flash('User with this email already exists.')
             errors = True

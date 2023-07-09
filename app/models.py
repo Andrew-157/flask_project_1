@@ -29,7 +29,7 @@ tagged_items = db.Table('tagged_items',
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(150))
+    title = db.Column(db.String(300))
     details = db.Column(db.Text, nullable=True)
     asked = db.Column(db.DateTime, default=datetime.utcnow)
     # This field(updated) will be given value only when it is updated
