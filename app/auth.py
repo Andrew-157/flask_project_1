@@ -72,6 +72,8 @@ def register():
             flash('Username is not valid.Letters, digits and @/./+/-/_ only.')
             errors = True
 
+        # user_with_username = db.session.execute(
+        #     db.select(User).filter_by(username=username)).scalar_one_or_none()
         user_with_email = User.query.filter_by(email=email).first()
         user_with_username = User.query.filter_by(username=username).first()
 
