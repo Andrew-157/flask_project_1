@@ -22,6 +22,9 @@ class Tag(db.Model):
     def __str__(self):
         return self.name
 
+    def __repr__(self):
+        return self.name
+
 
 tagged_items = db.Table('tagged_items',
                         db.Column('tag_id', db.Integer,
@@ -47,6 +50,9 @@ class Question(db.Model):
     def __str__(self):
         return self.title
 
+    def __repr__(self):
+        return self.title
+
 
 class QuestionViews(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id',
@@ -61,3 +67,57 @@ class QuestionViews(db.Model):
         'User', backref=db.backref('views', lazy=True))
     question = db.relationship(
         'Question', backref=db.backref('times_viewed', lazy=True))
+
+
+class Answer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    published = db.Column(db.DateTime, default=datetime.utcnow)
+    updated = db.Column(db.DateTime, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
+                                                  ondelete='CASCADE',
+                                                  onupdate='CASCADE'), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id',
+                                                      ondelete='CASCADE',
+                                                      onupdate='CASCADE'),
+                            nullable=False)
+    question = db.relationship(
+        'Question', backref=db.backref('answers', lazy=True))
+    user = db.relationship('User', backref=db.backref('answers', lazy=True))
+
+    def __repr__(self):
+        return self.content
+
+
+class QuestionVote(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Boolean, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
+                                                  ondelete='CASCADE',
+                                                  onupdate='CASCADE'), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id',
+                                                      ondelete='CASCADE',
+                                                      onupdate='CASCADE'),
+                            nullable=False)
+    question = db.relationship(
+        'Question', backref=db.backref('votes', lazy=True))
+    user = db.relationship(
+        'User', backref=db.backref('question_votes', lazy=True))
+
+
+class AnswerVote(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.Boolean, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
+                                                  ondelete='CASCADE',
+                                                  onupdate='CASCADE'), nullable=False)
+    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id',
+                                                    ondelete='CASCADE',
+                                                    onupdate='CASCADE'),
+                          nullable=False)
+    answer = db.relationship(
+        'Answer', backref=db.backref('votes', lazy=True))
+    user = db.relationship(
+        'User', backref=db.backref('answer_votes', lazy=True))

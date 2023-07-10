@@ -194,10 +194,6 @@ def question_detail(id):
             )
             db.session.add(question_views_obj)
             db.session.commit()
-    # Do not forget to create a button with 'post' method
-    # that will send request to a view that will add views to question
-    # so that when reloading page on question_detail, views are not
-    # increased all the time
 
     return render_template('main/question_detail.html', question=question)
 
@@ -207,4 +203,12 @@ def questions_by_tag(tag):
     tag_object = db.session.query(Tag).\
         filter_by(name=tag).first()
 
-    return 'Optimize queries is necessary'
+    if not tag_object:
+        return render_template('main/questions_by_tag.html', tag=tag, questions=[])
+
+    questions = db.session.query(Question).\
+        options(db.joinedload(Question.tags), db.joinedload(Question.user)).\
+        filter(Question.tags.contains(tag_object)).\
+        all()
+
+    return render_template('main/questions_by_tag.html', tag=tag, questions=questions)

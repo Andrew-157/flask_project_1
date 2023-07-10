@@ -12,7 +12,7 @@
     </p>
     <p>
         {% for tag in question.tags %}
-        <a class="text-decoration-none" href="">
+        <a class="text-decoration-none" href="{{ url_for('main.questions_by_tag', tag=tag.name) }}">
             <span class="badge bg-primary ">{{ tag.name }}</span>
         </a>
         {% endfor %}
