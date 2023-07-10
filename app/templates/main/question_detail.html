@@ -1,0 +1,26 @@
+{% extends 'main_base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <h1>{{ question.title }}</h1>
+    <p><small class="text-muted"> Viewed {{ question.times_viewed }} times</small>
+        <small><a href="" class="text-decoration-none">Asked by {{ question.user }}</a></small>
+        <small class="text-muted">Published on {{ question.asked.strftime('%Y-%m-%d') }}</small>
+    </p>
+    <p>
+        {% for tag in question.tags %}
+        <a class="text-decoration-none" href="">
+            <span class="badge bg-primary ">{{ tag.name }}</span>
+        </a>
+        {% endfor %}
+    </p>
+    <div class="container py-5 border">
+        <h3>Details of the question:</h3>
+        {% if question.details %}
+        <p class="text-break">{{ question.details }}</p>
+        {% else %}
+        <p class="text-info">No details for question provided.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

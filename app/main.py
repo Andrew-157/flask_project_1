@@ -169,3 +169,24 @@ def update_question(id):
         db.session.commit()
         flash('You successfully updated your question.', 'success')
         return redirect(url_for('main.index'))
+
+
+@bp.route('/questions/<int:id>/', methods=['GET'])
+def question_detail(id):
+
+    question = db.session.query(Question).\
+        options(db.joinedload(Question.tags), db.joinedload(Question.user)).\
+        filter_by(id=id).first()
+
+    if not question:
+        return render_template('nonexistent.html')
+
+    # if current_user.is_authenticated:
+    #     question.times_viewed += 1
+    #     db.session.commit()
+    # Do not forget to create a button with 'post' method
+    # that will send request to a view that will add views to question
+    # so that when reloading page on question_detail, views are not
+    # increased all the time
+
+    return render_template('main/question_detail.html', question=question)
