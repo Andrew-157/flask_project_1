@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from .models import Question, Tag, QuestionViews
+from .models import Question, Tag, QuestionViews, Answer, QuestionVote, AnswerVote
 from . import db
 
 bp = Blueprint('main', __name__)
@@ -198,7 +198,7 @@ def question_detail(id):
     return render_template('main/question_detail.html', question=question)
 
 
-@bp.route('/questions/<tag>/', methods=['GET'])
+@bp.route('/tags/<tag>/', methods=['GET'])
 def questions_by_tag(tag):
     tag_object = db.session.query(Tag).\
         filter_by(name=tag).first()
@@ -209,6 +209,18 @@ def questions_by_tag(tag):
     questions = db.session.query(Question).\
         options(db.joinedload(Question.tags), db.joinedload(Question.user)).\
         filter(Question.tags.contains(tag_object)).\
+        order_by(Question.asked.desc()).\
         all()
 
-    return render_template('main/questions_by_tag.html', tag=tag, questions=questions)
+    answers_count = {}
+    votes_count = {}
+    for question in questions:
+        answers_count[question.id] = len(db.session.query(Answer).
+                                         filter_by(question_id=question.id).all())
+        votes_count[question.id] = len(db.session.query(QuestionVote).
+                                       filter_by(question_id=question.id).all())
+
+    return render_template('main/questions_by_tag.html', tag=tag,
+                           questions=questions,
+                           answers_count=answers_count,
+                           votes_count=votes_count)

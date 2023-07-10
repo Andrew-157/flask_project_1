@@ -3,13 +3,41 @@
 {% block content %}
 <div class="container py-5">
     <h1>{{ question.title }}</h1>
-    <p><small class="text-muted"> Viewed {{ question.times_viewed| length }} times</small>
-        <small><a href="" class="text-decoration-none">Asked by {{ question.user }}</a></small>
-        <small class="text-muted">Asked on {{ question.asked.strftime('%Y-%m-%d') }}</small>
-        {% if question.updated %}
-        <small class="text-muted">Updated on {{ question.updated.strftime('%Y-%m-%d') }}</small>
-        {% endif %}
-    </p>
+    <div class="btn-group btn-group-lg">
+        <h4>Would you describe this question as:</h4>
+        <form action="" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="btn btn-primary btn-sm">Useful</button>
+        </form>
+        <form action="" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="btn btn-danger btn-sm">Not useful</button>
+        </form>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-4">
+                <p>
+                    <small class="text-muted">
+                        Asked by <a href="" class="text-decoration-none"> {{ question.user }}</a> <br>
+                        Asked on {{ question.asked.strftime('%Y-%m-%d') }} <br>
+                        {% if question.updated %}
+                        Updated on {{ question.updated.strftime('%Y-%m-%d') }} <br>
+                        {% endif %}
+                    </small>
+                </p>
+            </div>
+            <div class="col-sm-4">
+                <p>
+                    <small class="text-muted">
+                        Viewed {{ question.times_viewed| length }} times <br>
+                        Users who consider question <text class="text-primary fw-bold">useful</text>: 12 <br>
+                        Users who consider question <text class="text-danger fw-bold">not useful</text>: 1 <br>
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
     <p>
         {% for tag in question.tags %}
         <a class="text-decoration-none" href="{{ url_for('main.questions_by_tag', tag=tag.name) }}">
