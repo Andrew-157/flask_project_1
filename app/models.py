@@ -2,6 +2,8 @@ from datetime import datetime
 from flask_login import UserMixin
 from . import db
 
+from sqlalchemy import ForeignKey
+
 
 class User(UserMixin,  db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,7 +36,6 @@ class Question(db.Model):
     asked = db.Column(db.DateTime, default=datetime.utcnow)
     # This field(updated) will be given value only when it is updated
     updated = db.Column(db.DateTime, nullable=True)
-    times_viewed = db.Column(db.BigInteger, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id',
                                                   ondelete='CASCADE',
                                                   onupdate='CASCADE'),
@@ -45,3 +46,18 @@ class Question(db.Model):
 
     def __str__(self):
         return self.title
+
+
+class QuestionViews(db.Model):
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
+                                                  ondelete='CASCADE',
+                                                  onupdate='CASCADE'),
+                        primary_key=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id',
+                                                      ondelete='CASCADE',
+                                                      onupdate='CASCADE'),
+                            primary_key=True)
+    user = db.relationship(
+        'User', backref=db.backref('views', lazy=True))
+    question = db.relationship(
+        'Question', backref=db.backref('times_viewed', lazy=True))

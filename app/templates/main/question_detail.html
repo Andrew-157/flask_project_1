@@ -3,9 +3,12 @@
 {% block content %}
 <div class="container py-5">
     <h1>{{ question.title }}</h1>
-    <p><small class="text-muted"> Viewed {{ question.times_viewed }} times</small>
+    <p><small class="text-muted"> Viewed {{ question.times_viewed| length }} times</small>
         <small><a href="" class="text-decoration-none">Asked by {{ question.user }}</a></small>
-        <small class="text-muted">Published on {{ question.asked.strftime('%Y-%m-%d') }}</small>
+        <small class="text-muted">Asked on {{ question.asked.strftime('%Y-%m-%d') }}</small>
+        {% if question.updated %}
+        <small class="text-muted">Updated on {{ question.updated.strftime('%Y-%m-%d') }}</small>
+        {% endif %}
     </p>
     <p>
         {% for tag in question.tags %}

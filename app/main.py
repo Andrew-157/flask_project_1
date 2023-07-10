@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from .models import Question, Tag
+from .models import Question, Tag, QuestionViews
 from . import db
 
 bp = Blueprint('main', __name__)
@@ -175,18 +175,36 @@ def update_question(id):
 def question_detail(id):
 
     question = db.session.query(Question).\
-        options(db.joinedload(Question.tags), db.joinedload(Question.user)).\
+        options(db.joinedload(Question.tags),
+                db.joinedload(Question.times_viewed), db.joinedload(Question.user)).\
         filter_by(id=id).first()
 
     if not question:
         return render_template('nonexistent.html')
 
-    # if current_user.is_authenticated:
-    #     question.times_viewed += 1
-    #     db.session.commit()
+    if current_user.is_authenticated:
+        question_views_obj = QuestionViews.query.filter(
+            (QuestionViews.user_id == current_user.id)
+            & (QuestionViews.question_id == question.id)
+        ).first()
+        if not question_views_obj:
+            question_views_obj = QuestionViews(
+                user_id=current_user.id,
+                question_id=question.id
+            )
+            db.session.add(question_views_obj)
+            db.session.commit()
     # Do not forget to create a button with 'post' method
     # that will send request to a view that will add views to question
     # so that when reloading page on question_detail, views are not
     # increased all the time
 
     return render_template('main/question_detail.html', question=question)
+
+
+@bp.route('/questions/<tag>/', methods=['GET'])
+def questions_by_tag(tag):
+    tag_object = db.session.query(Tag).\
+        filter_by(name=tag).first()
+
+    return 'Optimize queries is necessary'
