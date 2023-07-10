@@ -25,7 +25,7 @@
             {% endwith %}
         </div>
         <div class="mb-3 mt-3">
-            <label for="details">Details:</label>
+            <label for="details" class="form-label">Details:</label>
             {% if not details %}
             <textarea class="form-control" placeholder="Provide details for your question" name="details" id="details"
                 rows="7"></textarea>
@@ -38,7 +38,7 @@
         <div class="mb-3 mt-3">
             <label for="tags">Tags:</label>
             {% if not tags %}
-            <input placeholder="Add tags" type="text" name="tags" id="tags" class="form-control">
+            <input placeholder="Add tags" placeholder="Add tags" type="text" name="tags" id="tags" class="form-control">
             {% else %}
             <input value="{{ tags }}" placeholder="Add tags" type="text" name="tags" id="tags" class="form-control">
             {% endif %}
