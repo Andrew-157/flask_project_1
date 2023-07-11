@@ -16,7 +16,7 @@
         {% if voting_status.is_upvote == True %}
         <p><small>(You consider this question useful)</small></p>
         {% elif voting_status.is_upvote == False %}
-        <p><small>(You consider this question not useful)</small></p>
+        <p><small>(You are considering this question not useful)</small></p>
         {% endif %}
     </div>
     <div class="container">
@@ -36,8 +36,9 @@
                 <p>
                     <small class="text-muted">
                         Viewed {{ question.times_viewed| length }} times <br>
-                        Users who consider question <text class="text-primary fw-bold">useful</text>: 12 <br>
-                        Users who consider question <text class="text-danger fw-bold">not useful</text>: 1 <br>
+                        Users who consider question <text class="text-primary fw-bold">useful</text>: {{ upvotes }} <br>
+                        Users who consider question <text class="text-danger fw-bold">not useful</text>: {{ downvotes }}
+                        <br>
                     </small>
                 </p>
             </div>

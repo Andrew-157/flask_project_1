@@ -217,6 +217,16 @@ def question_detail(id):
     if not question:
         return render_template('nonexistent.html')
 
+    upvotes = db.session.query(QuestionVote).filter(
+        (QuestionVote.question_id == question.id) &
+        (QuestionVote.is_upvote == True)
+    ).count()
+    downvotes = db.session.query(QuestionVote).\
+        filter(
+        (QuestionVote.question_id == question.id) &
+        (QuestionVote.is_upvote == False)
+    ).count()
+
     if current_user.is_authenticated:
         question_views_obj = QuestionViews.query.filter(
             (QuestionViews.user_id == current_user.id)
@@ -235,13 +245,12 @@ def question_detail(id):
             (QuestionVote.user_id == current_user.id)
         ).first()
 
-        return render_template('main/question_detail.html', question=question,
-                               voting_status=voting_status)
     else:
         voting_status = None
 
     return render_template('main/question_detail.html', question=question,
-                           voting_status=voting_status)
+                           voting_status=voting_status, upvotes=upvotes,
+                           downvotes=downvotes)
 
 
 @bp.route('/questions/<int:id>/upvote/', methods=['POST', 'GET'])
