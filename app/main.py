@@ -30,6 +30,41 @@ def split_tags_string(tags: str):
     return tags_list
 
 
+def upvote_downvote_question(question_id: int, user_id: int, is_upvote: bool):
+    # pass to this function only existing questions
+    # and authenticated users
+    existing_vote = db.session.query(QuestionVote).\
+        filter((QuestionVote.user_id == user_id) &
+               QuestionVote.question_id == question_id).first()
+    if not existing_vote:
+        vote = QuestionVote(user_id=user_id,
+                            question_id=question_id,
+                            is_upvote=is_upvote)
+        db.session.add(vote)
+        db.session.commit()
+        return None
+
+    if existing_vote:
+        if existing_vote.is_upvote == True:
+            if is_upvote == True:
+                db.session.delete(existing_vote)
+                db.session.commit()
+                return None
+            elif is_upvote == False:
+                existing_vote.is_upvote = False
+                db.session.commit()
+                return None
+        elif existing_vote.is_upvote == False:
+            if is_upvote == False:
+                db.session.delete(existing_vote)
+                db.session.commit()
+                return None
+            elif is_upvote == True:
+                existing_vote.is_upvote = True
+                db.session.commit()
+                return None
+
+
 @bp.route('/')
 def index():
     return render_template('main/index.html')
@@ -153,7 +188,7 @@ def update_question(id):
             tag_objects = []
             for tag in tags:
                 existing_tag = db.session.execute(
-                    db.select(Tag).filter_by(name=tag)).scalar_one_or_none()
+                    db.select(Tag).filter_by(name=tag)).first()
                 if existing_tag:
                     tag_objects.append(existing_tag)
                 else:
@@ -195,7 +230,58 @@ def question_detail(id):
             db.session.add(question_views_obj)
             db.session.commit()
 
-    return render_template('main/question_detail.html', question=question)
+        voting_status = db.session.query(QuestionVote).filter(
+            (QuestionVote.question_id == question.id) &
+            (QuestionVote.user_id == current_user.id)
+        ).first()
+
+        return render_template('main/question_detail.html', question=question,
+                               voting_status=voting_status)
+    else:
+        voting_status = None
+
+    return render_template('main/question_detail.html', question=question,
+                           voting_status=voting_status)
+
+
+@bp.route('/questions/<int:id>/upvote/', methods=['POST', 'GET'])
+def upvote_question(id):
+    if request.method == 'POST':
+        question = db.session.query(Question).filter_by(id=id).first()
+
+        if not question:
+            return render_template('nonexistent.html')
+
+        if not current_user.is_authenticated:
+            flash('You have to authenticate to vote for a question', 'info')
+        else:
+            upvote_downvote_question(question_id=question.id,
+                                     user_id=current_user.id, is_upvote=True)
+
+        return redirect(url_for('main.question_detail', id=question.id))
+
+    elif request.method == 'GET':
+        return render_template('main/not_allowed.html')
+
+
+@bp.route('/questions/<int:id>/downvote/', methods=['POST', 'GET'])
+def downvote_question(id):
+    if request.method == 'POST':
+        question = db.session.query(Question).filter_by(id=id).first()
+
+        if not question:
+            return render_template('nonexistent.html')
+
+        if not current_user.is_authenticated:
+            flash('You have to authenticate to vote for a question', 'info')
+        else:
+            upvote_downvote_question(question_id=question.id,
+                                     user_id=current_user.id, is_upvote=False)
+
+        return redirect(url_for('main.question_detail', id=question.id))
+
+    elif request.method == 'GET':
+        return render_template('main/not_allowed.html')
 
 
 @bp.route('/tags/<tag>/', methods=['GET'])

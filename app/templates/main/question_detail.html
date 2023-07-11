@@ -5,14 +5,19 @@
     <h1>{{ question.title }}</h1>
     <div class="btn-group btn-group-lg">
         <h4>Would you describe this question as:</h4>
-        <form action="" method="post">
+        <form action="{{ url_for('main.upvote_question', id=question.id) }}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button class="btn btn-primary btn-sm">Useful</button>
         </form>
-        <form action="" method="post">
+        <form action="{{ url_for('main.downvote_question', id=question.id) }}" method="post">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button class="btn btn-danger btn-sm">Not useful</button>
+            <button class="btn btn-danger btn-sm">Not Useful</button>
         </form>
+        {% if voting_status.is_upvote == True %}
+        <p><small>(You consider this question useful)</small></p>
+        {% elif voting_status.is_upvote == False %}
+        <p><small>(You consider this question not useful)</small></p>
+        {% endif %}
     </div>
     <div class="container">
         <div class="row">
