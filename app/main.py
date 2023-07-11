@@ -215,10 +215,10 @@ def questions_by_tag(tag):
     answers_count = {}
     votes_count = {}
     for question in questions:
-        answers_count[question.id] = len(db.session.query(Answer).
-                                         filter_by(question_id=question.id).all())
-        votes_count[question.id] = len(db.session.query(QuestionVote).
-                                       filter_by(question_id=question.id).all())
+        answers_count[question.id] = db.session.query(Answer). \
+            filter_by(question_id=question.id).count()
+        votes_count[question.id] = db.session.query(QuestionVote).\
+            filter_by(question_id=question.id).count()
 
     return render_template('main/questions_by_tag.html', tag=tag,
                            questions=questions,

@@ -92,7 +92,7 @@ class Answer(db.Model):
 class QuestionVote(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    value = db.Column(db.Boolean, nullable=False)
+    is_upvote = db.Column(db.Boolean, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id',
                                                   ondelete='CASCADE',
                                                   onupdate='CASCADE'), nullable=False)
@@ -109,7 +109,7 @@ class QuestionVote(db.Model):
 class AnswerVote(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    value = db.Column(db.Boolean, nullable=False)
+    is_upvote = db.Column(db.Boolean, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id',
                                                   ondelete='CASCADE',
                                                   onupdate='CASCADE'), nullable=False)
