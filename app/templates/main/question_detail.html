@@ -3,24 +3,41 @@
 {% block content %}
 <div class="container py-5">
     <h1>{{ question.title }}</h1>
-    <div class="btn-group btn-group-lg">
-        <h4>Would you describe this question as:</h4>
-        <form action="{{ url_for('main.upvote_question', id=question.id) }}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button class="btn btn-primary btn-sm">Useful</button>
-        </form>
-        <form action="{{ url_for('main.downvote_question', id=question.id) }}" method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button class="btn btn-danger btn-sm">Not Useful</button>
-        </form>
-        {% if voting_status.is_upvote == True %}
-        <p><small>(You consider this question useful)</small></p>
-        {% elif voting_status.is_upvote == False %}
-        <p><small>(You are considering this question not useful)</small></p>
+    <p>
+        {% for tag in question.tags %}
+        <a class="text-decoration-none" href="{{ url_for('main.questions_by_tag', tag=tag.name) }}">
+            <span class="badge bg-primary ">{{ tag.name }}</span>
+        </a>
+        {% endfor %}
+    </p>
+    <div class="container py-5 border">
+        <h3>Details of the question:</h3>
+        {% if question.details %}
+        <p class="text-break">{{ question.details }}</p>
+        {% else %}
+        <p class="text-info">No details for question provided.</p>
         {% endif %}
     </div>
     <div class="container">
         <div class="row">
+            <div class="col-sm-4">
+                <h5>Would you describe this question as:</h5>
+                {% if voting_status.is_upvote == True %}
+                <p><small>(You consider this question useful)</small></p>
+                {% elif voting_status.is_upvote == False %}
+                <p><small>(You are considering this question not useful)</small></p>
+                {% endif %}
+                <div class="btn-group">
+                    <form action="{{ url_for('main.upvote_question', id=question.id) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button class="btn btn-primary btn-sm">Useful</button>
+                    </form>
+                    <form action="{{ url_for('main.downvote_question', id=question.id) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button class="btn btn-danger btn-sm">Not Useful</button>
+                    </form>
+                </div>
+            </div>
             <div class="col-sm-4">
                 <p>
                     <small class="text-muted">
@@ -43,21 +60,6 @@
                 </p>
             </div>
         </div>
-    </div>
-    <p>
-        {% for tag in question.tags %}
-        <a class="text-decoration-none" href="{{ url_for('main.questions_by_tag', tag=tag.name) }}">
-            <span class="badge bg-primary ">{{ tag.name }}</span>
-        </a>
-        {% endfor %}
-    </p>
-    <div class="container py-5 border">
-        <h3>Details of the question:</h3>
-        {% if question.details %}
-        <p class="text-break">{{ question.details }}</p>
-        {% else %}
-        <p class="text-info">No details for question provided.</p>
-        {% endif %}
     </div>
 </div>
 {% endblock %}
