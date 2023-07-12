@@ -65,6 +65,42 @@ def upvote_downvote_question(question_id: int, user_id: int, is_upvote: bool):
                 return None
 
 
+def upvote_downvote_answer(answer_id: int, user_id: int, is_upvote: bool):
+    existing_vote = db.session.query(AnswerVote).\
+        filter((AnswerVote.answer_id == answer_id) &
+               (AnswerVote.user_id == user_id)).first()
+
+    if not existing_vote:
+        vote = AnswerVote(
+            answer_id=answer_id,
+            user_id=user_id,
+            is_upvote=is_upvote
+        )
+        db.session.add(vote)
+        db.session.commit()
+        return None
+
+    if existing_vote:
+        if existing_vote.is_upvote == True:
+            if is_upvote == True:
+                db.session.delete(existing_vote)
+                db.session.commit()
+                return None
+            if is_upvote == False:
+                existing_vote.is_upvote = False
+                db.session.commit()
+                return None
+        if existing_vote.is_upvote == False:
+            if is_upvote == False:
+                db.session.delete(existing_vote)
+                db.session.commit()
+                return None
+            if is_upvote == True:
+                existing_vote.is_upvote = True
+                db.session.commit()
+                return None
+
+
 @bp.route('/')
 def index():
     return render_template('main/index.html')
@@ -248,9 +284,38 @@ def question_detail(id):
     else:
         voting_status = None
 
+    answers = db.session.query(Answer).options(
+        db.joinedload(Answer.user)
+    ).filter_by(question_id=question.id).all()
+
+    answers_upvotes = {}
+    answers_downvotes = {}
+    for answer in answers:
+        answers_upvotes[answer.id] = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.is_upvote == True)
+        ).count()
+        answers_downvotes[answer.id] = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.is_upvote == False)
+        ).count()
+
+    answer_votes_user = {}
+    for answer in answers:
+        user_vote = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.user_id == current_user.id)
+        ).first()
+        if user_vote:
+            answer_votes_user[answer.id] = user_vote
+
     return render_template('main/question_detail.html', question=question,
                            voting_status=voting_status, upvotes=upvotes,
-                           downvotes=downvotes)
+                           downvotes=downvotes,
+                           answers=answers,
+                           answers_upvotes=answers_upvotes,
+                           answers_downvotes=answers_downvotes,
+                           answer_votes_user=answer_votes_user)
 
 
 @bp.route('/questions/<int:id>/upvote/', methods=['POST', 'GET'])
@@ -377,3 +442,43 @@ def post_answer(question_id):
 
         return render_template('main/post_answer.html',
                                question=question)
+
+
+@bp.route('/answers/<int:id>/upvote/', methods=['GET', 'POST'])
+def upvote_answer(id):
+    if request.method == 'POST':
+        answer = db.session.query(Answer).\
+            filter_by(id=id).first()
+
+        if not answer:
+            return render_template('main/nonexistent.html')
+
+        if not current_user.is_authenticated:
+            flash('To vote for an answer, become authenticated user.', 'info')
+        else:
+            upvote_downvote_answer(answer.id, current_user.id, is_upvote=True)
+
+        return redirect(url_for('main.question_detail', id=answer.question_id))
+
+    if request.method == 'GET':
+        return render_template('main/not_allowed.html')
+
+
+@bp.route('/answers/<int:id>/downvote/', methods=['GET', 'POST'])
+def downvote_answer(id):
+    if request.method == 'POST':
+        answer = db.session.query(Answer).\
+            filter_by(id=id).first()
+
+        if not answer:
+            return render_template('main/nonexistent.html')
+
+        if not current_user.is_authenticated:
+            flash('To vote for an answer, become authenticated user.', 'info')
+        else:
+            upvote_downvote_answer(answer.id, current_user.id, is_upvote=False)
+
+        return redirect(url_for('main.question_detail', id=answer.question_id))
+
+    if request.method == 'GET':
+        return render_template('main/not_allowed.html')
