@@ -87,7 +87,7 @@ def post_question():
             flash('Title is too long.')
             errors = True
 
-        if title and len(title) < 10:
+        if title and len(title) < 15:
             flash('Title is too short')
             errors = True
 
@@ -319,3 +319,61 @@ def questions_by_tag(tag):
                            questions=questions,
                            answers_count=answers_count,
                            votes_count=votes_count)
+
+
+@bp.route('/questions/<int:question_id>/answer/', methods=['POST', 'GET'])
+def post_answer(question_id):
+    if request.method == 'POST':
+        question = db.session.query(Question).\
+            filter_by(id=question_id).first()
+
+        if not question:
+            return render_template('nonexistent.html')
+
+        if not current_user.is_authenticated:
+            flash(
+                'To leave an answer for a question, become an authenticated user.', 'info')
+            return redirect(url_for('main.question_detail', id=question.id))
+
+        content = request.form['content']
+        errors = False
+
+        if not content:
+            flash('To publish an answer, you need to provide content for it.')
+            errors = True
+
+        if content and len(content) < 15:
+            flash('Content of your answer is too short.')
+            errors = True
+
+        if errors:
+            return render_template('main/post_answer.html',
+                                   content=content,
+                                   question=question)
+
+        answer = Answer(content=content,
+                        user_id=current_user.id,
+                        question_id=question.id)
+
+        db.session.add(answer)
+        db.session.commit()
+
+        flash('You successfully published your answer.', 'success')
+
+        return redirect(url_for('main.question_detail', id=question.id))
+
+    if request.method == 'GET':
+        question = db.session.query(Question).\
+            filter_by(id=question_id).first()
+
+        if not question:
+            return render_template('nonexistent.html')
+
+        if not current_user.is_authenticated:
+            flash(
+                'To leave an answer for a question, become an authenticated user.', 'info'
+            )
+            return redirect('main.question_detail', id=question.id)
+
+        return render_template('main/post_answer.html',
+                               question=question)
