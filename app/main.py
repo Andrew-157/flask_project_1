@@ -161,8 +161,6 @@ def post_question():
 def update_question(id):
 
     if request.method == 'GET':
-        # Tried to add some optimization on queries using
-        # joinedload instead of default lazy
         question = db.session.query(Question).\
             options(db.joinedload(Question.tags)).\
             filter_by(id=id).first()
@@ -191,7 +189,7 @@ def update_question(id):
         if not question:
             return render_template('nonexistent.html')
 
-        if question.user != current_user:
+        if question.user_id != current_user.id:
             return render_template('not_allowed.html')
 
         title = request.form['title']
@@ -443,6 +441,52 @@ def post_answer(question_id):
 
         return render_template('main/post_answer.html',
                                question=question)
+
+
+@bp.route('/answers/<int:id>/update/', methods=['POST', 'GET'])
+@login_required
+def update_answer(id):
+    answer = db.session.query(Answer).\
+        options(db.joinedload(Answer.question)).\
+        filter_by(id=id).first()
+
+    if not answer:
+        return render_template('main/nonexistent.html')
+
+    if answer.user_id != current_user.id:
+        return render_template('main/not_allowed.html')
+
+    if request.method == 'POST':
+        content = request.form['content']
+        errors = False
+
+        if not content:
+            flash('You cannot update your answer to be empty.')
+            errors = True
+
+        if content and len(content) < 15:
+            flash('Content of your answer is too short.')
+            errors = True
+
+        if errors:
+            return render_template('main/update_answer.html',
+                                   content=content,
+                                   answer=answer,
+                                   question=answer.question)
+
+        answer.content = content
+        answer.updated = datetime.utcnow()
+
+        db.session.commit()
+
+        flash('You successfully updated your answer.', 'success')
+
+        return redirect(url_for('main.question_detail', id=answer.question_id))
+
+    if request.method == 'GET':
+        return render_template('main/update_answer.html', content=answer.content,
+                               answer=answer,
+                               question=answer.question)
 
 
 @bp.route('/answers/<int:id>/upvote/', methods=['GET', 'POST'])

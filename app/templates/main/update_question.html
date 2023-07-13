@@ -24,11 +24,11 @@
         <div class="mb-3 mt-3">
             <label for="details" class="form-label">Details:</label>
             {% if not question.details %}
-            <textarea name="details" placeholder="Provide new details for your question" id="details"
-                class="form-control" rows="7"></textarea>
+            <textarea name="details" placeholder="Update details for your question" id="details" class="form-control"
+                rows="7"></textarea>
             {% else %}
-            <textarea name="details" placeholder="Provide new details for your question" id="details"
-                class="form-control" rows="7">{{ question.details }}</textarea>
+            <textarea name="details" placeholder="Update details for your question" id="details" class="form-control"
+                rows="7">{{ question.details }}</textarea>
             {% endif %}
             <p class="text-muted"><small>Details are not mandatory, but they are helpful for other users.</small></p>
         </div>

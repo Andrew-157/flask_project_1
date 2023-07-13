@@ -74,6 +74,10 @@
         {% for answer in answers %}
         <div class="container py-3">
             <div class="container py-3 my-3 border">
+                {% if answer.user == current_user %}
+                <a class="text-decoration-none" href="{{ url_for('main.update_answer', id=answer.id) }}">
+                    Update your answer</a>
+                {% endif %}
                 <h3>Answer:</h3>
                 <p class="text-break">{{ answer.content }}</p>
             </div>
