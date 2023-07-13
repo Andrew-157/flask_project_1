@@ -164,7 +164,7 @@ def update_question(id):
         # Tried to add some optimization on queries using
         # joinedload instead of default lazy
         question = db.session.query(Question).\
-            options(db.joinedload(Question.tags), db.joinedload(Question.user)).\
+            options(db.joinedload(Question.tags)).\
             filter_by(id=id).first()
 
         if not question:
@@ -246,8 +246,7 @@ def update_question(id):
 def question_detail(id):
 
     question = db.session.query(Question).\
-        options(db.joinedload(Question.tags),
-                db.joinedload(Question.times_viewed), db.joinedload(Question.user)).\
+        options(db.joinedload(Question.times_viewed), db.joinedload(Question.user)).\
         filter_by(id=id).first()
 
     if not question:
@@ -367,7 +366,9 @@ def questions_by_tag(tag):
         return render_template('main/questions_by_tag.html', tag=tag, questions=[])
 
     questions = db.session.query(Question).\
-        options(db.joinedload(Question.tags), db.joinedload(Question.user)).\
+        options(db.joinedload(Question.tags),
+                db.joinedload(Question.user),
+                db.joinedload(Question.times_viewed)).\
         filter(Question.tags.contains(tag_object)).\
         order_by(Question.asked.desc()).\
         all()
