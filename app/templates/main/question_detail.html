@@ -4,6 +4,14 @@
 <div class="container py-5">
     <div class="container">
         <h1>{{ question.title }}</h1>
+        {% if current_user.id == question.user_id %}
+        <a class="text-decoration-none" href="{{ url_for('main.update_question', id=question.id) }}">
+            Update your question</a>
+        <form action="{{ url_for('main.delete_question', id=question.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="btn btn-danger btn-sm">Delete your question</button>
+        </form>
+        {% endif %}
         <p>
             {% for tag in question.tags %}
             <a class="text-decoration-none" href="{{ url_for('main.questions_by_tag', tag=tag.name) }}">

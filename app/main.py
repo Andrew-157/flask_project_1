@@ -315,6 +315,29 @@ def question_detail(id):
                            answer_votes_user=answer_votes_user)
 
 
+@bp.route('/questions/<int:id>/delete/', methods=['GET', 'POST'])
+@login_required
+def delete_question(id):
+    if request.method == 'POST':
+        question = db.session.query(Question).\
+            filter_by(id=id).first()
+
+        if not question:
+            return render_template('nonexistent.html')
+
+        if question.user_id != current_user.id:
+            return render_template('not_allowed.html')
+
+        db.session.delete(question)
+        db.session.commit()
+
+        flash('You successfully deleted your question.', 'success')
+        return redirect(url_for('main.index'))
+
+    if request.method == 'GET':
+        return render_template('not_allowed.html')
+
+
 @bp.route('/questions/<int:id>/upvote/', methods=['POST', 'GET'])
 def upvote_question(id):
     if request.method == 'POST':

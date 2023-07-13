@@ -43,7 +43,8 @@ class Question(db.Model):
                                                   ondelete='CASCADE',
                                                   onupdate='CASCADE'),
                         nullable=False)
-    user = db.relationship('User', backref=db.backref('questions', lazy=True))
+    user = db.relationship('User', backref=db.backref(
+        'questions', lazy=True, cascade="all, delete-orphan"))
     tags = db.relationship('Tag', secondary=tagged_items,
                            backref=db.backref('questions', lazy=True))
 
@@ -64,9 +65,11 @@ class QuestionViews(db.Model):
                                                       onupdate='CASCADE'),
                             primary_key=True)
     user = db.relationship(
-        'User', backref=db.backref('views', lazy=True))
+        'User', backref=db.backref('views', lazy=True,
+                                   cascade="all, delete-orphan"))
     question = db.relationship(
-        'Question', backref=db.backref('times_viewed', lazy=True))
+        'Question', backref=db.backref('times_viewed', lazy=True,
+                                       cascade="all, delete-orphan"))
 
 
 class Answer(db.Model):
@@ -82,8 +85,9 @@ class Answer(db.Model):
                                                       onupdate='CASCADE'),
                             nullable=False)
     question = db.relationship(
-        'Question', backref=db.backref('answers', lazy=True))
-    user = db.relationship('User', backref=db.backref('answers', lazy=True))
+        'Question', backref=db.backref('answers', lazy=True, cascade="all, delete-orphan"))
+    user = db.relationship('User', backref=db.backref(
+        'answers', lazy=True, cascade="all, delete-orphan"))
 
     def __repr__(self):
         return self.content
@@ -101,9 +105,11 @@ class QuestionVote(db.Model):
                                                       onupdate='CASCADE'),
                             nullable=False)
     question = db.relationship(
-        'Question', backref=db.backref('votes', lazy=True))
+        'Question', backref=db.backref('votes', lazy=True,
+                                       cascade="all, delete-orphan"))
     user = db.relationship(
-        'User', backref=db.backref('question_votes', lazy=True))
+        'User', backref=db.backref('question_votes', lazy=True,
+                                   cascade="all, delete-orphan"))
 
 
 class AnswerVote(db.Model):
@@ -118,6 +124,8 @@ class AnswerVote(db.Model):
                                                     onupdate='CASCADE'),
                           nullable=False)
     answer = db.relationship(
-        'Answer', backref=db.backref('votes', lazy=True))
+        'Answer', backref=db.backref('votes', lazy=True,
+                                     cascade="all, delete-orphan"))
     user = db.relationship(
-        'User', backref=db.backref('answer_votes', lazy=True))
+        'User', backref=db.backref('answer_votes', lazy=True,
+                                   cascade="all, delete-orphan"))
