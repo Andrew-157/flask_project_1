@@ -121,3 +121,41 @@ class AnswerVote(db.Model):
         'Answer', backref=db.backref('votes', lazy=True))
     user = db.relationship(
         'User', backref=db.backref('answer_votes', lazy=True))
+
+
+class QuestionComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
+                                                  ondelete='CASCADE',
+                                                  onupdate='CASCADE'), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id',
+                                                      ondelete='CASCADE',
+                                                      onupdate='CASCADE'),
+                            nullable=False)
+    question = db.relationship(
+        'Question', backref=db.backref('comments', lazy=True))
+    user = db.relationship(
+        'User', backref=db.backref('question_comments', lazy=True))
+
+    def __repr__(self):
+        return self.content
+
+
+class AnswerComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
+                                                  ondelete='CASCADE',
+                                                  onupdate='CASCADE'), nullable=False)
+    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id',
+                                                    ondelete='CASCADE',
+                                                    onupdate='CASCADE'),
+                          nullable=False)
+    answer = db.relationship(
+        'Answer', backref=db.backref('comments', lazy=True))
+    user = db.relationship(
+        'User', backref=db.backref('answer_comments', lazy=True))
+
+    def __repr__(self):
+        return self.content
