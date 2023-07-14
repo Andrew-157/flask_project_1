@@ -145,6 +145,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    flash('You successfully logged out.', 'success')
     return redirect(url_for('main.index'))
 
 

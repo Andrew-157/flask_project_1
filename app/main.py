@@ -103,14 +103,16 @@ def upvote_downvote_answer(answer_id: int, user_id: int, is_upvote: bool):
 
 @bp.route('/')
 def index():
-    return render_template('main/index.html')
+    tags = db.session.query(Tag).\
+        options(db.joinedload(Tag.questions)).all()
+    return render_template('main/index.html', tags=tags)
 
 
 @bp.route('/questions/ask', methods=['GET', 'POST'])
 def post_question():
     if not current_user.is_authenticated:
         flash('You need to be authenticated to ask a question.', 'info')
-        return redirect('main.index')
+        return redirect(url_for('main.index'))
 
     if request.method == 'POST':
         title = request.form['title']
