@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container py-5">
     <h1>Ask any question you want</h1>
-    <form action="{{ url_for('main.post_question') }}" method="post">
+    <form action="{{ url_for('main.personal_post_question') }}" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-3 mt-3">
             <label for="title" class="form-label">Title:</label>

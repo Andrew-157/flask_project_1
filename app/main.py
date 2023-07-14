@@ -35,7 +35,7 @@ def upvote_downvote_question(question_id: int, user_id: int, is_upvote: bool):
     # and authenticated users
     existing_vote = db.session.query(QuestionVote).\
         filter((QuestionVote.user_id == user_id) &
-               QuestionVote.question_id == question_id).first()
+               (QuestionVote.question_id == question_id)).first()
     if not existing_vote:
         vote = QuestionVote(user_id=user_id,
                             question_id=question_id,
@@ -107,8 +107,11 @@ def index():
 
 
 @bp.route('/questions/ask', methods=['GET', 'POST'])
-@login_required
 def post_question():
+    if not current_user.is_authenticated:
+        flash('You need to be authenticated to ask a question.', 'info')
+        return redirect('main.index')
+
     if request.method == 'POST':
         title = request.form['title']
         details = request.form['details']
@@ -212,8 +215,8 @@ def update_question(id):
             tags = split_tags_string(tags)
             tag_objects = []
             for tag in tags:
-                existing_tag = db.session.execute(
-                    db.select(Tag).filter_by(name=tag)).first()
+                existing_tag = db.session.query(Tag).\
+                    filter_by(name=tag).first()
                 if existing_tag:
                     tag_objects.append(existing_tag)
                 else:
@@ -222,13 +225,31 @@ def update_question(id):
                     db.session.add(new_tag)
 
             question.tags.clear()
-
             for tag_object in tag_objects:
                 question.tags.append(tag_object)
 
+        # if tags:
+        #     tags = split_tags_string(tags)
+        #     for question_tag in question.tags:
+        #         if question_tag.name not in tags:
+        #             question.tags.remove(question_tag)
+        #         else:
+        #             continue
+
+        #     for tag in tags:
+        #         existing_tag = db.session.query(
+        #             Tag).filter_by(name=tag).first()
+        #         if existing_tag:
+        #             if existing_tag not in question.tags:
+        #                 question.tags.append(existing_tag)
+        #         else:
+        #             new_tag = Tag(name=tag)
+        #             question.tags.append(new_tag)
+        #             db.session.add(new_tag)
+
         db.session.commit()
         flash('You successfully updated your question.', 'success')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.question_detail', id=question.id))
 
 
 @bp.route('/questions/<int:id>/', methods=['GET'])
@@ -567,3 +588,79 @@ def downvote_answer(id):
 
     if request.method == 'GET':
         return render_template('main/not_allowed.html')
+
+
+@bp.route('/personal/page/')
+@login_required
+def personal_page():
+    questions_asked = db.session.query(Question).\
+        filter_by(user_id=current_user.id).all()
+
+    questions_answered = []
+
+    answers = db.session.query(Answer).\
+        options(db.joinedload(Answer.question)).\
+        filter_by(user_id=current_user.id).all()
+
+    for answer in answers:
+        if answer.question in questions_answered:
+            continue
+        else:
+            questions_answered.append(answer.question)
+
+    return render_template('main/personal_page.html',
+                           questions_asked=questions_asked,
+                           questions_answered=questions_answered)
+
+
+@bp.route('/personal/questions/ask', methods=['GET', 'POST'])
+@login_required
+def personal_post_question():
+    # This is basically the same view for posting questions
+    # just that it redirects to user's personal page instead of
+    # index page
+    if request.method == 'POST':
+        title = request.form['title']
+        details = request.form['details']
+        tags = request.form['tags']
+        errors = False
+
+        if not title:
+            flash('Title is required to post a question.')
+            errors = True
+
+        if title and len(title) > 300:
+            flash('Title is too long.')
+            errors = True
+
+        if title and len(title) < 15:
+            flash('Title is too short')
+            errors = True
+
+        if errors:
+            return render_template('main/personal_post_question.html',
+                                   title=title, details=details, tags=tags)
+
+        question = Question(title=title,
+                            details=details if details else None,
+                            user_id=current_user.id)
+        db.session.add(question)
+
+        if tags:
+            tags = split_tags_string(tags)
+            for tag in tags:
+                existing_tag = db.session.execute(
+                    db.select(Tag).filter_by(name=tag)).scalar_one_or_none()
+                if existing_tag:
+                    question.tags.append(existing_tag)
+                else:
+                    new_tag = Tag(name=tag)
+                    question.tags.append(new_tag)
+                    db.session.add(new_tag)
+
+        db.session.commit()
+
+        flash('You successfully asked new question!', 'success')
+        return redirect(url_for('main.personal_page'))
+
+    return render_template('main/personal_post_question.html')

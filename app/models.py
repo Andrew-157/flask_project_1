@@ -19,11 +19,11 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(70))
 
-    def __str__(self):
-        return self.name
+    # def __str__(self):
+    #     return self.name
 
-    def __repr__(self):
-        return self.name
+    # def __repr__(self):
+    #     return self.name
 
 
 tagged_items = db.Table('tagged_items',

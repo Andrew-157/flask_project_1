@@ -2,8 +2,9 @@
 
 {% block content %}
 <div class="container py-5">
-    <h1>Update your question:</h1>
-    <a class="text-decoration-none" href="">{{ question.title }}</a>
+    <h1>Update your question:
+        <a class="text-decoration-none" href="">{{ question.title }}</a>
+    </h1>
     <form action="{{ url_for('main.update_question', id=question.id) }}" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-3 mt-3">
