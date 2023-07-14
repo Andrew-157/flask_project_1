@@ -77,7 +77,9 @@
         <h3 class="text-center">Answers({{ answers|length }})
         </h3>
         <p class="text-center">
-            <a class="text-decoration-none text-center" href="">Publish your answer</a>
+            <a class="text-decoration-none text-center"
+                href="{{ url_for('main.post_answer', question_id=question.id) }}">
+                Publish your answer</a>
         </p>
         {% for answer in answers %}
         <div class="container py-3">
@@ -85,6 +87,10 @@
                 {% if answer.user == current_user %}
                 <a class="text-decoration-none" href="{{ url_for('main.update_answer', id=answer.id) }}">
                     Update your answer</a>
+                <form action="{{ url_for('main.delete_answer', id=answer.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button class="btn btn-danger btn-sm">Delete your answer</button>
+                </form>
                 {% endif %}
                 <h3>Answer:</h3>
                 <p class="text-break">{{ answer.content }}</p>

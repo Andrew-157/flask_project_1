@@ -39,9 +39,7 @@ class Question(db.Model):
     asked = db.Column(db.DateTime, default=datetime.utcnow)
     # This field(updated) will be given value only when it is updated
     updated = db.Column(db.DateTime, nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
-                                                  ondelete='CASCADE',
-                                                  onupdate='CASCADE'),
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
                         nullable=False)
     user = db.relationship('User', backref=db.backref(
         'questions', lazy=True, cascade="all, delete-orphan"))
@@ -56,13 +54,9 @@ class Question(db.Model):
 
 
 class QuestionViews(db.Model):
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
-                                                  ondelete='CASCADE',
-                                                  onupdate='CASCADE'),
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
                         primary_key=True)
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id',
-                                                      ondelete='CASCADE',
-                                                      onupdate='CASCADE'),
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id'),
                             primary_key=True)
     user = db.relationship(
         'User', backref=db.backref('views', lazy=True,
@@ -77,12 +71,8 @@ class Answer(db.Model):
     content = db.Column(db.Text, nullable=False)
     published = db.Column(db.DateTime, default=datetime.utcnow)
     updated = db.Column(db.DateTime, nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
-                                                  ondelete='CASCADE',
-                                                  onupdate='CASCADE'), nullable=False)
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id',
-                                                      ondelete='CASCADE',
-                                                      onupdate='CASCADE'),
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id'),
                             nullable=False)
     question = db.relationship(
         'Question', backref=db.backref('answers', lazy=True, cascade="all, delete-orphan"))
@@ -97,12 +87,8 @@ class QuestionVote(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     is_upvote = db.Column(db.Boolean, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
-                                                  ondelete='CASCADE',
-                                                  onupdate='CASCADE'), nullable=False)
-    question_id = db.Column(db.Integer, db.ForeignKey('question.id',
-                                                      ondelete='CASCADE',
-                                                      onupdate='CASCADE'),
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id'),
                             nullable=False)
     question = db.relationship(
         'Question', backref=db.backref('votes', lazy=True,
@@ -116,12 +102,8 @@ class AnswerVote(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     is_upvote = db.Column(db.Boolean, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id',
-                                                  ondelete='CASCADE',
-                                                  onupdate='CASCADE'), nullable=False)
-    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id',
-                                                    ondelete='CASCADE',
-                                                    onupdate='CASCADE'),
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id'),
                           nullable=False)
     answer = db.relationship(
         'Answer', backref=db.backref('votes', lazy=True,

@@ -159,17 +159,17 @@ def post_question():
 @bp.route('/questions/<int:id>/update/', methods=['GET', 'POST'])
 @login_required
 def update_question(id):
+    question = db.session.query(Question).\
+        options(db.joinedload(Question.tags)).\
+        filter_by(id=id).first()
+
+    if not question:
+        return render_template('nonexistent.html')
+
+    if question.user != current_user:
+        return render_template('not_allowed.html')
 
     if request.method == 'GET':
-        question = db.session.query(Question).\
-            options(db.joinedload(Question.tags)).\
-            filter_by(id=id).first()
-
-        if not question:
-            return render_template('nonexistent.html')
-
-        if question.user != current_user:
-            return render_template('not_allowed.html')
 
         if question.tags:
             tags_list = list(question.tags)
@@ -182,15 +182,6 @@ def update_question(id):
                                tags=tags)
 
     if request.method == 'POST':
-        question = db.session.query(Question).\
-            options(db.joinedload(Question.tags), db.joinedload(Question.user)).\
-            filter_by(id=id).first()
-
-        if not question:
-            return render_template('nonexistent.html')
-
-        if question.user_id != current_user.id:
-            return render_template('not_allowed.html')
 
         title = request.form['title']
         details = request.form['details']
@@ -510,6 +501,32 @@ def update_answer(id):
         return render_template('main/update_answer.html', content=answer.content,
                                answer=answer,
                                question=answer.question)
+
+
+@bp.route('/answers/<int:id>/delete/', methods=['GET', 'POST'])
+@login_required
+def delete_answer(id):
+    if request.method == 'POST':
+        answer = db.session.query(Answer).\
+            filter_by(id=id).first()
+
+        if not answer:
+            return render_template('nonexistent.html')
+
+        if current_user.id != answer.user_id:
+            return render_template('not_allowed.html')
+
+        question_id = answer.question_id
+
+        db.session.delete(answer)
+        db.session.commit()
+
+        flash('You successfully deleted your answer.', 'success')
+
+        return redirect(url_for('main.question_detail', id=question_id))
+
+    if request.method == 'GET':
+        return render_template('not_allowed.html')
 
 
 @bp.route('/answers/<int:id>/upvote/', methods=['GET', 'POST'])
