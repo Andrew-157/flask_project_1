@@ -6,9 +6,14 @@
     <form action="{{ url_for('auth.change_profile') }}" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-3 mt-3">
-            <label class="form-label">Username:</label>
-            <input type="text" placeholder="Enter new username" class="form-control" value="{{ username }}"
-                name="username" required>
+            <label for="username" class="form-label">Username:</label>
+            {% if not username %}
+            <input id="username" type="text" placeholder="Enter new username" class="form-control" name="username"
+                required>
+            {% else %}
+            <input id="username" type="text" placeholder="Enter new username" class="form-control"
+                value="{{ username }}" name="username" required>
+            {% endif %}
             <p class="text-muted"><small>Minimum number of symbols is 5. Letters, digits and @/./+/-/_ only.</small></p>
             {% with messages=get_flashed_messages() %}
             {% if messages %}
@@ -21,9 +26,13 @@
             {% endwith %}
         </div>
         <div class="mb-3 mt-3">
-            <label class="form-label">Email:</label>
-            <input type="email" placeholder="Enter new email" class="form-control" value="{{ email }}" name="email"
-                required>
+            <label for="email" class="form-label">Email:</label>
+            {% if not email %}
+            <input id="email" type="email" placeholder="Enter new email" class="form-control" name="email" required>
+            {% else %}
+            <input id="email" type="email" placeholder="Enter new email" class="form-control" value="{{ email }}"
+                name="email" required>
+            {% endif %}
             <p class="text-muted"><small>Enter a valid email address.</small></p>
             {% with messages=get_flashed_messages() %}
             {% if messages %}

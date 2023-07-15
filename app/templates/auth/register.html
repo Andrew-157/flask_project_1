@@ -6,12 +6,12 @@
     <form action="{{ url_for('auth.register') }}" method="post">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="mb-3 mt-3">
-            <label class="form-label">Username:</label>
+            <label for="username" class="form-label">Username:</label>
             {% if not username %}
-            <input type="text" class="form-control" placeholder="Enter username" name="username" required>
+            <input id="username" type="text" class="form-control" placeholder="Enter username" name="username" required>
             {% else %}
-            <input type="text" class="form-control" value="{{ username }}" placeholder="Enter username" name="username"
-                required>
+            <input id="username" type="text" class="form-control" value="{{ username }}" placeholder="Enter username"
+                name="username" required>
             {% endif %}
             <p class="text-muted"><small>Minimum number of symbols is 5. Letters, digits and @/./+/-/_ only.</small></p>
             {% with messages=get_flashed_messages() %}
@@ -25,12 +25,12 @@
             {% endwith %}
         </div>
         <div class="mb-3 mt-3">
-            <label class="form-label">Email:</label>
+            <label for="email" class="form-label">Email:</label>
             {% if not email %}
-            <input type="email" class="form-control" placeholder="Enter email" name="email" required>
+            <input id="email" type="email" class="form-control" placeholder="Enter email" name="email" required>
             {% else %}
-            <input type="email" class="form-control" value="{{ email }}" placeholder="Enter email" name="email"
-                required>
+            <input id="email" type="email" class="form-control" value="{{ email }}" placeholder="Enter email"
+                name="email" required>
             {% endif %}
             <p class="text-muted"><small>Enter a valid email address.</small></p>
             {% with messages=get_flashed_messages() %}
@@ -44,8 +44,8 @@
             {% endwith %}
         </div>
         <div class="mb-3">
-            <label class="form-label">Password:</label>
-            <input type="password" class="form-control" placeholder="Enter password" name="password" required>
+            <label for="pwd" class="form-label">Password:</label>
+            <input id="pwd" type="password" class="form-control" placeholder="Enter password" name="password" required>
             <p class="text-muted"><small>Minimum length of password is 8 symbols.</small></p>
             {% with messages=get_flashed_messages() %}
             {% if messages %}
@@ -58,8 +58,9 @@
             {% endwith %}
         </div>
         <div class="mb-3">
-            <label class="form-label">Enter password again:</label>
-            <input type="password" class="form-control" placeholder="Enter the same password" name="password1" required>
+            <label for="pwd1" class="form-label">Enter password again:</label>
+            <input id="pwd1" type="password" class="form-control" placeholder="Enter the same password" name="password1"
+                required>
             {% with messages=get_flashed_messages() %}
             {% if messages %}
             {% for message in messages %}
