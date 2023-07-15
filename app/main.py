@@ -666,3 +666,36 @@ def personal_post_question():
         return redirect(url_for('main.personal_page'))
 
     return render_template('main/personal_post_question.html')
+
+
+@bp.route('/questions/search/', methods=['GET'])
+def search():
+    query = request.args.to_dict()['query']
+
+    if not query:
+        return render_template('empty_search.html')
+
+    if query[0] == '#':
+        return redirect(url_for('main.questions_by_tag', tag=query[1:]))
+
+    questions = db.session.query(Question).\
+        options(db.joinedload(Question.user),
+                db.joinedload(Question.tags),
+                db.joinedload(Question.times_viewed)).\
+        filter((Question.title.contains(query)) |
+               (Question.details.contains(query))).\
+        order_by(Question.asked.desc()).all()
+
+    answers_count = {}
+    votes_count = {}
+    for question in questions:
+        answers_count[question.id] = db.session.query(Answer). \
+            filter_by(question_id=question.id).count()
+        votes_count[question.id] = db.session.query(QuestionVote).\
+            filter_by(question_id=question.id).count()
+
+    return render_template('main/search_results.html',
+                           questions=questions,
+                           answers_count=answers_count,
+                           votes_count=votes_count,
+                           query=query)
