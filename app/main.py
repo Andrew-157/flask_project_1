@@ -311,14 +311,17 @@ def question_detail(id):
             (AnswerVote.is_upvote == False)
         ).count()
 
-    answer_votes_user = {}
-    for answer in answers:
-        user_vote = db.session.query(AnswerVote).filter(
-            (AnswerVote.answer_id == answer.id) &
-            (AnswerVote.user_id == current_user.id)
-        ).first()
-        if user_vote:
-            answer_votes_user[answer.id] = user_vote
+    if current_user.is_authenticated:
+        answer_votes_user = {}
+        for answer in answers:
+            user_vote = db.session.query(AnswerVote).filter(
+                (AnswerVote.answer_id == answer.id) &
+                (AnswerVote.user_id == current_user.id)
+            ).first()
+            if user_vote:
+                answer_votes_user[answer.id] = user_vote
+    else:
+        answer_votes_user = {}
 
     return render_template('main/question_detail.html', question=question,
                            voting_status=voting_status, upvotes=upvotes,
@@ -474,7 +477,7 @@ def post_answer(question_id):
             flash(
                 'To leave an answer for a question, become an authenticated user.', 'info'
             )
-            return redirect('main.question_detail', id=question.id)
+            return redirect(url_for('main.question_detail', id=question.id))
 
         return render_template('main/post_answer.html',
                                question=question)
@@ -727,3 +730,4 @@ def search():
                            answers_count=answers_count,
                            votes_count=votes_count,
                            query=query)
+

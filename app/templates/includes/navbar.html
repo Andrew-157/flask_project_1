@@ -1,15 +1,15 @@
 <nav class="navbar navbar-expand-sm navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="javascript:void(0)">Asklee</a>
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">Asklee</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mynavbar">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <form class="d-flex" style="width: 500px;" action="{{ url_for('main.search')}}" method="get">
+                    <form class="d-flex" style="width: 525px;" action="{{ url_for('main.search')}}" method="get">
                         <input name="query" class="form-control me-2" type="text"
-                            placeholder="Find a question or use '#' to search for tags">
+                            placeholder="Find a question entering key words or use '#' to search for tag">
                         <button class="btn btn-primary" type="submit">Find</button>
                     </form>
                 </li>
