@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
-from .models import Question, Tag, QuestionViews, Answer, QuestionVote, AnswerVote
+from .models import User, Question, Tag, QuestionViews, Answer, QuestionVote, AnswerVote
 from . import db
 
 bp = Blueprint('main', __name__)
@@ -611,6 +611,34 @@ def personal_page():
             questions_answered.append(answer.question)
 
     return render_template('main/personal_page.html',
+                           questions_asked=questions_asked,
+                           questions_answered=questions_answered)
+
+
+@bp.route('/users/<username>/', methods=['GET'])
+def public_page(username):
+    user = db.session.query(User).\
+        filter_by(username=username).first()
+    if not user:
+        return render_template('nonexistent.html')
+
+    questions_asked = db.session.query(Question).\
+        filter_by(user_id=user.id).all()
+
+    questions_answered = []
+
+    answers = db.session.query(Answer).\
+        options(db.joinedload(Answer.question)).\
+        filter_by(user_id=user.id).all()
+
+    for answer in answers:
+        if answer.question in questions_answered:
+            continue
+        else:
+            questions_answered.append(answer.question)
+
+    return render_template('main/public_page.html',
+                           user=user,
                            questions_asked=questions_asked,
                            questions_answered=questions_answered)
 

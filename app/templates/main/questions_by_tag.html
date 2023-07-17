@@ -13,8 +13,9 @@
             <p class="fw-bold">
                 <a class="text-decoration-none" href="{{ url_for('main.question_detail', id=question.id) }}">
                     {{question.title }}</a>
-                <small class="text-muted">(Asked by <a href="">{{ question.user }}</a> on
-                    {{ question.asked.strftime('%Y-%m-%d') }})</small>
+                <small class="text-muted">(Asked by <a
+                        href="{{ url_for('main.public_page', username=question.user.username) }}">
+                        {{ question.user }}</a> on {{ question.asked.strftime('%Y-%m-%d') }})</small>
             </p>
             <p>
                 <small class="text-muted">
