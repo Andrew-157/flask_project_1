@@ -427,18 +427,18 @@ def questions_by_tag(tag):
 
 @bp.route('/questions/<int:question_id>/answer/', methods=['POST', 'GET'])
 def post_answer(question_id):
+    question = db.session.query(Question).\
+        filter_by(id=question_id).first()
+
+    if not question:
+        return render_template('nonexistent.html')
+
+    if not current_user.is_authenticated:
+        flash(
+            'To leave an answer for a question, become an authenticated user.', 'info')
+        return redirect(url_for('main.question_detail', id=question.id))
+
     if request.method == 'POST':
-        question = db.session.query(Question).\
-            filter_by(id=question_id).first()
-
-        if not question:
-            return render_template('nonexistent.html')
-
-        if not current_user.is_authenticated:
-            flash(
-                'To leave an answer for a question, become an authenticated user.', 'info')
-            return redirect(url_for('main.question_detail', id=question.id))
-
         content = request.form['content']
         errors = False
 
@@ -467,18 +467,6 @@ def post_answer(question_id):
         return redirect(url_for('main.question_detail', id=question.id))
 
     if request.method == 'GET':
-        question = db.session.query(Question).\
-            filter_by(id=question_id).first()
-
-        if not question:
-            return render_template('nonexistent.html')
-
-        if not current_user.is_authenticated:
-            flash(
-                'To leave an answer for a question, become an authenticated user.', 'info'
-            )
-            return redirect(url_for('main.question_detail', id=question.id))
-
         return render_template('main/post_answer.html',
                                question=question)
 
@@ -730,4 +718,3 @@ def search():
                            answers_count=answers_count,
                            votes_count=votes_count,
                            query=query)
-
