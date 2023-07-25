@@ -31,6 +31,7 @@ def create_app(test_config=None):
     else:
         app.config.from_object('config.ProductionConfig')
 
+    # Apply handling of status code with custom templates
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, permission_denied_for_page)
     app.register_error_handler(405, method_not_allowed_for_page)
