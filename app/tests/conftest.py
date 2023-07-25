@@ -1,13 +1,12 @@
-from app import create_app, db
+from .. import create_app, db
 import pytest
 
 
-@pytest.fixture()
+@pytest.fixture
 def app():
-    app = create_app()
-    app.config.update({
+    app = create_app({
         "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": 'sqlite:///:memory'
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory"
     })
 
     with app.app_context():

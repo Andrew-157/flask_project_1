@@ -31,6 +31,9 @@ def create_app(test_config=None):
     else:
         app.config.from_object('config.ProductionConfig')
 
+    if test_config:
+        app.config.from_mapping(test_config)
+
     # Apply handling of status code with custom templates
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, permission_denied_for_page)
