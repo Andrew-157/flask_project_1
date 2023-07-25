@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, abort
 from flask_login import login_required, current_user
 from .models import User, Question, Tag, QuestionViews, Answer, QuestionVote, AnswerVote
 from . import db
@@ -169,10 +169,10 @@ def update_question(id):
         filter_by(id=id).first()
 
     if not question:
-        return render_template('nonexistent.html')
+        abort(404)
 
     if question.user != current_user:
-        return render_template('not_allowed.html')
+        abort(403)
 
     if request.method == 'GET':
 
@@ -262,7 +262,7 @@ def question_detail(id):
         filter_by(id=id).first()
 
     if not question:
-        return render_template('nonexistent.html')
+        abort(404)
 
     upvotes = db.session.query(QuestionVote).filter(
         (QuestionVote.question_id == question.id) &
@@ -340,19 +340,16 @@ def delete_question(id):
             filter_by(id=id).first()
 
         if not question:
-            return render_template('nonexistent.html')
+            abort(404)
 
         if question.user_id != current_user.id:
-            return render_template('not_allowed.html')
+            abort(403)
 
         db.session.delete(question)
         db.session.commit()
 
         flash('You successfully deleted your question.', 'success')
         return redirect(url_for('main.index'))
-
-    if request.method == 'GET':
-        return render_template('not_allowed.html')
 
 
 @bp.route('/questions/<int:id>/upvote/', methods=['POST', 'GET'])
@@ -361,7 +358,7 @@ def upvote_question(id):
         question = db.session.query(Question).filter_by(id=id).first()
 
         if not question:
-            return render_template('nonexistent.html')
+            abort(404)
 
         if not current_user.is_authenticated:
             flash('You have to authenticate to vote for a question', 'info')
@@ -371,9 +368,6 @@ def upvote_question(id):
 
         return redirect(url_for('main.question_detail', id=question.id))
 
-    elif request.method == 'GET':
-        return render_template('main/not_allowed.html')
-
 
 @bp.route('/questions/<int:id>/downvote/', methods=['POST', 'GET'])
 def downvote_question(id):
@@ -381,7 +375,7 @@ def downvote_question(id):
         question = db.session.query(Question).filter_by(id=id).first()
 
         if not question:
-            return render_template('nonexistent.html')
+            abort(404)
 
         if not current_user.is_authenticated:
             flash('You have to authenticate to vote for a question', 'info')
@@ -390,9 +384,6 @@ def downvote_question(id):
                                      user_id=current_user.id, is_upvote=False)
 
         return redirect(url_for('main.question_detail', id=question.id))
-
-    elif request.method == 'GET':
-        return render_template('main/not_allowed.html')
 
 
 @bp.route('/tags/<tag>/', methods=['GET'])
@@ -431,7 +422,7 @@ def post_answer(question_id):
         filter_by(id=question_id).first()
 
     if not question:
-        return render_template('nonexistent.html')
+        abort(404)
 
     if not current_user.is_authenticated:
         flash(
@@ -479,10 +470,10 @@ def update_answer(id):
         filter_by(id=id).first()
 
     if not answer:
-        return render_template('main/nonexistent.html')
+        abort(404)
 
     if answer.user_id != current_user.id:
-        return render_template('main/not_allowed.html')
+        abort(403)
 
     if request.method == 'POST':
         content = request.form['content']
@@ -525,10 +516,10 @@ def delete_answer(id):
             filter_by(id=id).first()
 
         if not answer:
-            return render_template('nonexistent.html')
+            abort(404)
 
         if current_user.id != answer.user_id:
-            return render_template('not_allowed.html')
+            abort(403)
 
         question_id = answer.question_id
 
@@ -539,9 +530,6 @@ def delete_answer(id):
 
         return redirect(url_for('main.question_detail', id=question_id))
 
-    if request.method == 'GET':
-        return render_template('not_allowed.html')
-
 
 @bp.route('/answers/<int:id>/upvote/', methods=['GET', 'POST'])
 def upvote_answer(id):
@@ -550,7 +538,7 @@ def upvote_answer(id):
             filter_by(id=id).first()
 
         if not answer:
-            return render_template('main/nonexistent.html')
+            abort(404)
 
         if not current_user.is_authenticated:
             flash('To vote for an answer, become authenticated user.', 'info')
@@ -558,9 +546,6 @@ def upvote_answer(id):
             upvote_downvote_answer(answer.id, current_user.id, is_upvote=True)
 
         return redirect(url_for('main.question_detail', id=answer.question_id))
-
-    if request.method == 'GET':
-        return render_template('main/not_allowed.html')
 
 
 @bp.route('/answers/<int:id>/downvote/', methods=['GET', 'POST'])
@@ -570,7 +555,7 @@ def downvote_answer(id):
             filter_by(id=id).first()
 
         if not answer:
-            return render_template('main/nonexistent.html')
+            abort(404)
 
         if not current_user.is_authenticated:
             flash('To vote for an answer, become authenticated user.', 'info')
@@ -578,9 +563,6 @@ def downvote_answer(id):
             upvote_downvote_answer(answer.id, current_user.id, is_upvote=False)
 
         return redirect(url_for('main.question_detail', id=answer.question_id))
-
-    if request.method == 'GET':
-        return render_template('main/not_allowed.html')
 
 
 @bp.route('/personal/page/')
@@ -611,7 +593,7 @@ def public_page(username):
     user = db.session.query(User).\
         filter_by(username=username).first()
     if not user:
-        return render_template('nonexistent.html')
+        abort(404)
 
     questions_asked = db.session.query(Question).\
         filter_by(user_id=user.id).all()
