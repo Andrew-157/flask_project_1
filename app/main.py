@@ -332,7 +332,7 @@ def question_detail(id):
                            answer_votes_user=answer_votes_user)
 
 
-@bp.route('/questions/<int:id>/delete/', methods=['GET', 'POST'])
+@bp.route('/questions/<int:id>/delete/', methods=['POST'])
 @login_required
 def delete_question(id):
     if request.method == 'POST':
@@ -352,7 +352,7 @@ def delete_question(id):
         return redirect(url_for('main.index'))
 
 
-@bp.route('/questions/<int:id>/upvote/', methods=['POST', 'GET'])
+@bp.route('/questions/<int:id>/upvote/', methods=['POST'])
 def upvote_question(id):
     if request.method == 'POST':
         question = db.session.query(Question).filter_by(id=id).first()
@@ -369,7 +369,7 @@ def upvote_question(id):
         return redirect(url_for('main.question_detail', id=question.id))
 
 
-@bp.route('/questions/<int:id>/downvote/', methods=['POST', 'GET'])
+@bp.route('/questions/<int:id>/downvote/', methods=['POST'])
 def downvote_question(id):
     if request.method == 'POST':
         question = db.session.query(Question).filter_by(id=id).first()
@@ -508,7 +508,7 @@ def update_answer(id):
                                question=answer.question)
 
 
-@bp.route('/answers/<int:id>/delete/', methods=['GET', 'POST'])
+@bp.route('/answers/<int:id>/delete/', methods=['POST'])
 @login_required
 def delete_answer(id):
     if request.method == 'POST':
@@ -531,7 +531,7 @@ def delete_answer(id):
         return redirect(url_for('main.question_detail', id=question_id))
 
 
-@bp.route('/answers/<int:id>/upvote/', methods=['GET', 'POST'])
+@bp.route('/answers/<int:id>/upvote/', methods=['POST'])
 def upvote_answer(id):
     if request.method == 'POST':
         answer = db.session.query(Answer).\
@@ -548,7 +548,7 @@ def upvote_answer(id):
         return redirect(url_for('main.question_detail', id=answer.question_id))
 
 
-@bp.route('/answers/<int:id>/downvote/', methods=['GET', 'POST'])
+@bp.route('/answers/<int:id>/downvote/', methods=['POST'])
 def downvote_answer(id):
     if request.method == 'POST':
         answer = db.session.query(Answer).\

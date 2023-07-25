@@ -1,15 +1,26 @@
 import os
 
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 
-
 db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
+
+
+def page_not_found(e):
+    return render_template('errors/404.html'), 404
+
+
+def permission_denied_for_page(e):
+    return render_template('errors/403.html'), 403
+
+
+def method_not_allowed_for_page(e):
+    return render_template('errors/405.html')
 
 
 def create_app(test_config=None):
@@ -19,6 +30,9 @@ def create_app(test_config=None):
         app.config.from_object('config.DevelopmentConfig')
     else:
         app.config.from_object('config.ProductionConfig')
+
+    app.register_error_handler(404, page_not_found)
+    app.register_error_handler(403, permission_denied_for_page)
 
     # Import of 'models' module is necessary
     # so that Flask-Migrate detects changes there
