@@ -674,7 +674,7 @@ def search():
     query = request.args.to_dict()['query']
 
     if not query:
-        return render_template('empty_search.html')
+        return render_template('main/empty_search.html')
 
     if query[0] == '#':
         return redirect(url_for('main.questions_by_tag', tag=query[1:]))
