@@ -33,6 +33,7 @@ def create_app(test_config=None):
 
     app.register_error_handler(404, page_not_found)
     app.register_error_handler(403, permission_denied_for_page)
+    app.register_error_handler(405, method_not_allowed_for_page)
 
     # Import of 'models' module is necessary
     # so that Flask-Migrate detects changes there
