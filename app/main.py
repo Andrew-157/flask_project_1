@@ -1,7 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, request, flash, abort
 from flask_login import login_required, current_user
-from .models import User, Question, Tag, QuestionViews, Answer, QuestionVote, AnswerVote
+from .models import User, Question, Tag, QuestionViews, Answer, QuestionVote, AnswerVote, tagged_items
 from . import db
 
 bp = Blueprint('main', __name__)
@@ -103,8 +103,11 @@ def upvote_downvote_answer(answer_id: int, user_id: int, is_upvote: bool):
 
 @bp.route('/')
 def index():
-    tags = db.session.query(Tag).\
-        options(db.joinedload(Tag.questions)).all()
+    tags = []
+    for tag in db.session.query(Tag).\
+        options(db.joinedload(Tag.questions)).all():
+        if len(tag.questions) >= 1:
+            tags.append(tag)
     return render_template('main/index.html', tags=tags)
 
 
@@ -141,7 +144,7 @@ def post_question():
                             user_id=current_user.id)
         db.session.add(question)
 
-        if tags:
+        if tags.strip():
             tags = split_tags_string(tags)
             for tag in tags:
                 existing_tag = db.session.execute(
@@ -181,6 +184,8 @@ def update_question(id):
             for index, tag in enumerate(tags_list):
                 tags_list[index] = tag.name
             tags = ','.join(tags_list)
+        else:
+            tags = None
 
         return render_template('main/update_question.html',
                                question=question,
@@ -194,7 +199,7 @@ def update_question(id):
         errors = False
 
         if not title:
-            flash('Title is required')
+            flash('Title is required.')
             errors = True
 
         if title and len(title) > 300:
@@ -213,7 +218,7 @@ def update_question(id):
         question.details = details
         question.updated = datetime.utcnow()
 
-        if tags:
+        if tags.strip():
             tags = split_tags_string(tags)
             tag_objects = []
             for tag in tags:
@@ -229,6 +234,8 @@ def update_question(id):
             question.tags.clear()
             for tag_object in tag_objects:
                 question.tags.append(tag_object)
+        else:
+            question.tags.clear()
 
         # if tags:
         #     tags = split_tags_string(tags)
@@ -673,7 +680,7 @@ def personal_post_question():
 def search():
     query = request.args.to_dict()['query']
 
-    if not query:
+    if not query.strip():
         return render_template('main/empty_search.html')
 
     if query[0] == '#':

@@ -12,7 +12,6 @@ flask-login = "*"
 mysqlclient = "*"
 flask-wtf = "*"
 pytest = "*"
-coverage = "*"
 
 [dev-packages]
 autopep8 = "*"
