@@ -58,7 +58,7 @@ def test_post_question_for_not_logged_user(client):
     assert messages['info'] == 'You need to be authenticated to ask a question.'
 
 
-def test_update_question(client, app, auth: AuthActions):
+def test_update_question_for_question_owner(client, app, auth: AuthActions):
     with app.app_context():
         test_user = db.session.query(User).\
             filter_by(username='test_user').first()
@@ -91,7 +91,7 @@ def test_update_question(client, app, auth: AuthActions):
     ('', b'Title is required.'),
     ('dfrg', b'Title is too short.')
 ))
-def test_update_question_validate_input(app, client, auth: AuthActions, title, message):
+def test_update_question_validate_input_for_question_owner(app, client, auth: AuthActions, title, message):
     with app.app_context():
         test_user = db.session.query(User).\
             filter_by(username='test_user').first()
@@ -144,7 +144,96 @@ def test_update_question_for_not_logged_user(client, app):
     assert (response.headers["Location"].startswith('/auth/login/'))
 
 
-def test_update_nonexistent_question(client, app, auth: AuthActions):
+def test_update_nonexistent_question_for_logged_user(client, app, auth: AuthActions):
     auth.login()
     response = client.get('/questions/7890/update/')
     assert response.status_code == 404
+
+
+def test_question_detail(app, client):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+
+    response = client.get(f'/questions/{question.id}/')
+    assert response.status_code == 200
+    assert str(question.title).encode("utf-8") in response.data
+
+
+def test_question_detail_for_question_owner(app, client, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+    auth.login()
+    response = client.get(f'/questions/{question.id}/')
+    assert response.status_code == 200
+    assert b'Update your question' in response.data
+    assert b'Delete your question' in response.data
+
+
+def test_question_detail_for_nonexistent_question(app, client, auth: AuthActions):
+    response = client.get('/questions/6789/')
+    assert response.status_code == 404
+
+
+def test_delete_question_for_question_owner(app, client, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+    auth.login()
+    response = client.post(f'/questions/{question.id}/delete/')
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers["Location"] == '/'
+    assert messages["success"] == 'You successfully deleted your question.'
+    with app.app_context():
+        question = db.session.query(Question).filter_by(
+            title='How to iterate through Python List?'
+        ).first()
+        assert question is None
+
+
+def test_delete_nonexistent_question_by_logged_user(client, auth: AuthActions):
+    auth.login()
+    response = client.post('/questions/4567/delete/')
+    assert response.status_code == 404
+
+
+def test_delete_question_for_not_logged_user(client):
+    response = client.post('/questions/4567/delete/')
+    assert response.status_code == 302
+    assert (response.headers["Location"].startswith('/auth/login/'))
+
+
+def test_delete_question_for_logged_user_that_does_not_own_question(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        new_user = User(username='some_user',
+                        email='some_user@gmail.com',
+                        password=generate_password_hash('34somepassword34'))
+        db.session.add(question)
+        db.session.add(new_user)
+        db.session.commit()
+        db.session.refresh(question)
+    auth.login(email='some_user@gmail.com', password='34somepassword34')
+    response = client.post(f'/questions/{question.id}/delete/')
+    assert response.status_code == 403
