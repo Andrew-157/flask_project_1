@@ -108,7 +108,7 @@ def index():
     return render_template('main/index.html', tags=tags)
 
 
-@bp.route('/questions/ask', methods=['GET', 'POST'])
+@bp.route('/questions/ask/', methods=['GET', 'POST'])
 def post_question():
     if not current_user.is_authenticated:
         flash('You need to be authenticated to ask a question.', 'info')
@@ -129,7 +129,7 @@ def post_question():
             errors = True
 
         if title and len(title) < 15:
-            flash('Title is too short')
+            flash('Title is too short.')
             errors = True
 
         if errors:

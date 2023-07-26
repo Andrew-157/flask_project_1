@@ -53,7 +53,6 @@ def test_register_validate_input(client, username, email, password, password1, m
 def test_login(client, auth: AuthActions):
     assert client.get('/auth/login/').status_code == 200
     response = auth.login()
-    messages = None
     with client.session_transaction() as session:
         messages = dict(session['_flashes'])
     assert response.status_code == 302
@@ -79,7 +78,6 @@ def test_login_validate_input(auth: AuthActions, email, password, message):
 def test_logout(client, auth: AuthActions):
     auth.login()
     response: Response = client.get('/auth/logout/')
-    messages = None
     with client.session_transaction() as session:
         messages = dict(session['_flashes'])
     assert response.status_code == 302
@@ -101,7 +99,6 @@ def test_change_profile(auth, client):
                                          'email': 'test_user1@gmail.com',
                                          'username': 'test_user1'
                                      })
-    messages = None
     with client.session_transaction() as session:
         messages = dict(session['_flashes'])
     assert response.status_code == 302
