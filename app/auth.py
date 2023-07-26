@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
@@ -16,6 +17,14 @@ def username_is_valid(username: str) -> bool:
     for symbol in username:
         if symbol not in allowed_symbols:
             return False
+    return True
+
+
+def email_is_valid(email: str) -> bool:
+    # Check validity of email
+    regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+    if not re.fullmatch(regex, email):
+        return False
     return True
 
 
@@ -71,9 +80,11 @@ def register():
         if username and not username_is_valid(username):
             flash('Username is not valid.Letters, digits and @/./+/-/_ only.')
             errors = True
+        # If email was provide, check that it is valid
+        if email and not email_is_valid(email):
+            flash('Email address is not valid.')
+            errors = True
 
-        # user_with_username = db.session.execute(
-        #     db.select(User).filter_by(username=username)).scalar_one_or_none()
         user_with_email = db.session.query(User).filter_by(email=email).first()
         user_with_username = db.session.query(
             User).filter_by(username=username).first()
@@ -135,7 +146,7 @@ def login():
             return render_template('auth/login.html', email=email)
 
         login_user(user=user, remember=remember)
-        flash('Welcome back to Asklee.', 'success')
+        flash('Welcome back to Asklee', 'success')
 
         return redirect(url_for('main.index'))
 
@@ -146,7 +157,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('You successfully logged out.', 'success')
+    flash('You successfully logged out', 'success')
     return redirect(url_for('main.index'))
 
 
@@ -180,6 +191,10 @@ def change_profile():
             flash('Username is not valid.Letters, digits and @/./+/-/_ only.')
             errors = True
 
+        if email and not email_is_valid(email):
+            flash('Email address is not valid.')
+            errors = True
+
         user_with_email = db.session.query(User).filter_by(email=email).first()
         user_with_username = db.session.query(
             User).filter_by(username=username).first()
@@ -199,7 +214,7 @@ def change_profile():
         current_user.email = email
         db.session.commit()
 
-        flash('You successfully updated your profile.', 'success')
+        flash('You successfully updated your profile', 'success')
         return redirect(url_for('main.index'))
 
     return render_template('auth/change_profile.html',
