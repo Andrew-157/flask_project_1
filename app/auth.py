@@ -74,8 +74,9 @@ def register():
 
         # user_with_username = db.session.execute(
         #     db.select(User).filter_by(username=username)).scalar_one_or_none()
-        user_with_email = User.query.filter_by(email=email).first()
-        user_with_username = User.query.filter_by(username=username).first()
+        user_with_email = db.session.query(User).filter_by(email=email).first()
+        user_with_username = db.session.query(
+            User).filter_by(username=username).first()
 
         # Check that username and email are unique
         if user_with_email:
@@ -121,7 +122,7 @@ def login():
             flash('Password is required to login.')
             errors = True
 
-        user = User.query.filter_by(email=email).first()
+        user = db.session.query(User).filter_by(email=email).first()
 
         if not user:
             flash('This email was not found.')
@@ -179,8 +180,9 @@ def change_profile():
             flash('Username is not valid.Letters, digits and @/./+/-/_ only.')
             errors = True
 
-        user_with_email = User.query.filter_by(email=email).first()
-        user_with_username = User.query.filter_by(username=username).first()
+        user_with_email = db.session.query(User).filter_by(email=email).first()
+        user_with_username = db.session.query(
+            User).filter_by(username=username).first()
 
         if user_with_email and (user_with_email != current_user):
             flash('User with this email already exists.')

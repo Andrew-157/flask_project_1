@@ -8,7 +8,9 @@
         <a class="text-decoration-none" href="{{ url_for('main.update_question', id=question.id) }}">
             Update your question</a>
         <form action="{{ url_for('main.delete_question', id=question.id) }}" method="post">
+            {% if config.WTF_CSRF_ENABLED %}
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            {% endif %}
             <button class="btn btn-danger btn-sm">Delete your question</button>
         </form>
         {% endif %}
@@ -38,11 +40,15 @@
                     {% endif %}
                     <div class="btn-group">
                         <form action="{{ url_for('main.upvote_question', id=question.id) }}" method="post">
+                            {% if config.WTF_CSRF_ENABLED %}
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            {% endif %}
                             <button class="btn btn-primary btn-sm">Useful</button>
                         </form>
                         <form action="{{ url_for('main.downvote_question', id=question.id) }}" method="post">
+                            {% if config.WTF_CSRF_TOKEN %}
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            {% endif %}
                             <button class="btn btn-danger btn-sm">Not Useful</button>
                         </form>
                     </div>
@@ -65,8 +71,8 @@
                             Times question was viewed: {{ question.times_viewed|length }} <br>
                             Users who consider question <text class="text-primary fw-bold">useful</text>: {{ upvotes }}
                             <br>
-                            Users who consider question <text class="text-danger fw-bold">not useful</text>: {{
-                            downvotes }}
+                            Users who consider question <text class="text-danger fw-bold">not useful</text>:
+                            {{ downvotes }}
                             <br>
                         </small>
                     </p>
@@ -89,7 +95,9 @@
                 <a class="text-decoration-none" href="{{ url_for('main.update_answer', id=answer.id) }}">
                     Update your answer</a>
                 <form action="{{ url_for('main.delete_answer', id=answer.id) }}" method="post">
+                    {% if config.WTF_CSRF_ENABLED %}
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    {% endif %}
                     <button class="btn btn-danger btn-sm">Delete your answer</button>
                 </form>
                 {% endif %}
@@ -109,11 +117,15 @@
                         {% endif %}
                         <div class="btn-group">
                             <form action="{{ url_for('main.upvote_answer', id=answer.id) }}" method="post">
+                                {% if config.WTF_CSRF_ENABLED %}
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                {% endif %}
                                 <button class="btn btn-primary btn-sm">Useful</button>
                             </form>
                             <form action="{{ url_for('main.downvote_answer', id=answer.id)}}" method="post">
+                                {% if config.WTF_CSRF_ENABLED %}
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                {% endif %}
                                 <button class="btn btn-danger btn-sm">Not Useful</button>
                             </form>
                         </div>
@@ -122,8 +134,7 @@
                         <p>
                             <small class="text-muted">
                                 Answered by <a href="{{ url_for('main.public_page', username=answer.user.username) }}"
-                                    class="text-decoration-none"> {{
-                                    answer.user }}</a> <br>
+                                    class="text-decoration-none"> {{ answer.user }}</a> <br>
                                 Answered on {{ question.asked.strftime('%Y-%m-%d') }} <br>
                                 {% if answer.updated %}
                                 Updated on {{ question.updated.strftime('%Y-%m-%d') }} <br>

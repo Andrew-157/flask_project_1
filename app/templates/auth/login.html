@@ -4,7 +4,9 @@
 <div class="container py-5">
     <h1>Asklee login</h1>
     <form action="{{ url_for('auth.login') }}" method="post">
+        {% if config.WTF_CSRF_ENABLED %}
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        {% endif %}
         <div class="mb-3 mt-3">
             <label for="email" class="form-label">Email:</label>
             {% if not email %}

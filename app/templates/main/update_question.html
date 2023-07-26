@@ -6,7 +6,9 @@
         <a class="text-decoration-none" href="">{{ question.title }}</a>
     </h1>
     <form action="{{ url_for('main.update_question', id=question.id) }}" method="post">
+        {% if config.WTF_CSRF_ENABLED %}
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        {% endif %}
         <div class="mb-3 mt-3">
             <label for="title" class="form-label">Title:</label>
             <input value="{{ question.title }}" type="text" id="title" class="form-control"
