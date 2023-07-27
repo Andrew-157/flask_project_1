@@ -683,7 +683,13 @@ def search():
     if not query.strip():
         return render_template('main/empty_search.html')
 
-    if query[0] == '#':
+    if query.strip() == '#':
+        return render_template('main/empty_search.html')
+
+    if query.strip() == '%':
+        return render_template('main/empty_search.html')
+
+    if query[0] == '#' or query[0] == '%':
         return redirect(url_for('main.questions_by_tag', tag=query[1:]))
 
     questions = db.session.query(Question).\

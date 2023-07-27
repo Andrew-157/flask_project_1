@@ -1004,3 +1004,12 @@ def test_search_for_question(client):
     assert response.status_code == 200
     assert f"Number of questions found with <mark>{query}</mark>".encode(
         "utf-8") in response.data
+
+
+def test_search_for_tag(client):
+    tag = 'tag'
+    response = client.get(
+        f"/questions/search/?query=%{tag}", follow_redirects=True)
+    assert response.status_code == 200
+    print(response.data)
+    assert b'Number of questions found with tag' in response.data
