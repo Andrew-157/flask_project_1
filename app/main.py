@@ -105,7 +105,7 @@ def upvote_downvote_answer(answer_id: int, user_id: int, is_upvote: bool):
 def index():
     tags = []
     for tag in db.session.query(Tag).\
-        options(db.joinedload(Tag.questions)).all():
+            options(db.joinedload(Tag.questions)).all():
         if len(tag.questions) >= 1:
             tags.append(tag)
     return render_template('main/index.html', tags=tags)
@@ -487,7 +487,7 @@ def update_answer(id):
         errors = False
 
         if not content:
-            flash('You cannot update your answer to be empty.')
+            flash('You cannot update your answer without content.')
             errors = True
 
         if content and len(content) < 15:

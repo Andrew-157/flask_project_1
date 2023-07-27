@@ -536,3 +536,99 @@ def test_post_answer_for_not_logged_user(client, app):
 def test_post_answer_for_nonexistent_question(client):
     response = client.get("/questions/67890/answer/")
     assert response.status_code == 404
+
+
+def test_update_answer_by_logged_user_that_owns_answer(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer.question)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.get(f"/answers/{answer.id}/update/")
+    assert response.status_code == 200
+    assert str(answer.question.title).encode("utf-8") in response.data
+    response = client.post(f"/answers/{answer.id}/update/",
+                           data={'content': 'My updated answer for your question.'})
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers["Location"] == f"/questions/{question.id}/"
+    assert messages['success'] == 'You successfully updated your answer.'
+    with app.app_context():
+        answer = db.session.query(Answer).filter(
+            (Answer.question_id == question.id) &
+            (Answer.user_id == test_user.id)
+        ).first()
+        assert answer.updated is not None
+
+
+@pytest.mark.parametrize(('content', 'message'),
+                         (
+    ('', b'You cannot update your answer without content.'),
+    ('short', b'Content of your answer is too short.')
+))
+def test_update_answer_by_logged_user_that_owns_answer_validate_input(client,
+                                                                      app,
+                                                                      auth: AuthActions,
+                                                                      content,
+                                                                      message):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.post(f"/answers/{answer.id}/update/",
+                           data={'content': content})
+    assert response.status_code == 200
+    assert message in response.data
+
+
+def test_update_answer_for_logged_user_that_does_not_own_answer(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        test_user_2 = User(username='random_user',
+                           email='random@gmail.com',
+                           password=generate_password_hash('34somepassword34'))
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.add(test_user_2)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login(email='random@gmail.com',
+               password='34somepassword34')
+    response = client.get(f'/answers/{answer.id}/update/')
+    assert response.status_code == 403
+
+
+def test_update_answer_for_not_logged_user(client):
+    response = client.get('/answers/5678/update/')
+    assert response.status_code == 302
+    assert (response.headers["Location"].startswith('/auth/login/'))
+
+
+def test_update_nonexistent_answer_by_logged_user(client, auth: AuthActions):
+    auth.login()
+    response = client.get("/answers/67890/update/")
+    assert response.status_code == 404
