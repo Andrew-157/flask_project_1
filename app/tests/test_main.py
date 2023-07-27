@@ -457,3 +457,8 @@ def test_downvote_question_for_logged_user_for_nonexistent_question(client, app,
     auth.login()
     response = client.post('/questions/7890/downvote/')
     assert response.status_code == 404
+
+
+def test_questions_by_tag(client):
+    response = client.get('/tags/some_tag/')
+    assert response.status_code == 200
