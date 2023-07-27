@@ -915,3 +915,17 @@ def test_downvote_answer_for_not_logged_user(app, client):
 def test_downvote_nonexistent_answer(app, client):
     response = client.post("/answers/564/upvote/")
     assert response.status_code == 404
+
+
+def test_personal_page_for_logged_user(auth: AuthActions, client):
+    auth.login()
+    response = client.get("/personal/page/")
+    assert response.status_code == 200
+    assert b'Number of questions you asked' in response.data
+    assert b'Number of questions you answered' in response.data
+
+
+def test_personal_page_for_not_logged_user(client):
+    response = client.get("/personal/page/")
+    assert response.status_code == 302
+    assert (response.headers["Location"].startswith("/auth/login/"))
