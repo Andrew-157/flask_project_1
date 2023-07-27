@@ -632,3 +632,66 @@ def test_update_nonexistent_answer_by_logged_user(client, auth: AuthActions):
     auth.login()
     response = client.get("/answers/67890/update/")
     assert response.status_code == 404
+
+
+def test_delete_question_for_logged_user_that_owns_answer(client, auth: AuthActions, app):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login()
+    question_id = answer.question_id
+    response = client.post(f"/answers/{answer.id}/delete/")
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers["Location"] == f"/questions/{answer.question_id}/"
+    assert messages["success"] == 'You successfully deleted your answer.'
+    with app.app_context():
+        answer = db.session.query(Answer).filter(
+            (Answer.question_id == question_id) &
+            (Answer.user_id == test_user.id)
+        ).first()
+        assert answer is None
+
+
+def test_delete_answer_by_logged_user_that_does_not_own_answer(client, auth: AuthActions, app):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        test_user_2 = User(username='random_user',
+                           email='random@gmail.com',
+                           password=generate_password_hash('34somepassword34'))
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.add(test_user_2)
+        db.session.commit()
+        db.session.refresh(answer)
+
+    auth.login(email='random@gmail.com',
+               password='34somepassword34')
+    response = client.post(f'/answers/{answer.id}/delete/')
+    assert response.status_code == 403
+
+
+def test_delete_nonexistent_answer_by_logged_user(client, auth: AuthActions):
+    auth.login()
+    response = client.post("/answers/45678/delete/")
+    assert response.status_code == 404
+
+
+def test_delete_answer_by_not_logged_user(client):
+    response = client.post("/answers/56789/delete/")
+    assert response.status_code == 302
+    assert (response.headers["Location"].startswith('/auth/login/'))
