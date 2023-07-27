@@ -929,3 +929,15 @@ def test_personal_page_for_not_logged_user(client):
     response = client.get("/personal/page/")
     assert response.status_code == 302
     assert (response.headers["Location"].startswith("/auth/login/"))
+
+
+def test_public_page(client):
+    response = client.get("/users/test_user/")
+    assert response.status_code == 200
+    assert b'Number of questions test_user asked' in response.data
+    assert b'Number of questions test_user answered' in response.data
+
+
+def test_public_page_for_nonexistent_user(client):
+    response = client.get("/users/fghjkliugyhjkihug/")
+    assert response.status_code == 404
