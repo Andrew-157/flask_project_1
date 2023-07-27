@@ -3,7 +3,7 @@ from flask import Response
 from werkzeug.security import generate_password_hash
 from .conftest import AuthActions
 from .. import db
-from ..models import User, Question, QuestionVote, QuestionViews
+from ..models import User, Question, QuestionVote, QuestionViews, Answer
 
 
 def test_index(client, auth: AuthActions):
@@ -462,3 +462,77 @@ def test_downvote_question_for_logged_user_for_nonexistent_question(client, app,
 def test_questions_by_tag(client):
     response = client.get('/tags/some_tag/')
     assert response.status_code == 200
+
+
+def test_post_answer_for_logged_user(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.get(f'/questions/{question.id}/answer/')
+    assert response.status_code == 200
+    assert str(question.title).encode("utf-8") in response.data
+    response = client.post(f'/questions/{question.id}/answer/',
+                           data={'content': "This is my answer to your question."})
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers["Location"] == f"/questions/{question.id}/"
+    assert messages["success"] == 'You successfully published your answer.'
+    with app.app_context():
+        answer = db.session.query(Answer).filter(
+            (Answer.question_id == question.id) &
+            (Answer.user_id == test_user.id)
+        ).first()
+        assert answer is not None
+
+
+@pytest.mark.parametrize(('content', 'message'),
+                         (
+    ('', b'To publish an answer, you need to provide content for it.'),
+    ('short', b'Content of your answer is too short.')
+))
+def test_post_answer_validate_input(client, app, auth: AuthActions, content, message):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+
+    auth.login()
+    response = client.post(f'/questions/{question.id}/answer/',
+                           data={'content': content})
+    assert response.status_code == 200
+    assert message in response.data
+
+
+def test_post_answer_for_not_logged_user(client, app):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+    response = client.get(f'/questions/{question.id}/answer/')
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{question.id}/'
+    assert messages['info'] == 'To leave an answer for a question, become an authenticated user.'
+
+
+def test_post_answer_for_nonexistent_question(client):
+    response = client.get("/questions/67890/answer/")
+    assert response.status_code == 404
