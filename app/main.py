@@ -623,7 +623,7 @@ def public_page(username):
                            questions_answered=questions_answered)
 
 
-@bp.route('/personal/questions/ask', methods=['GET', 'POST'])
+@bp.route('/personal/questions/ask/', methods=['GET', 'POST'])
 @login_required
 def personal_post_question():
     # This is basically the same view for posting questions
@@ -644,7 +644,7 @@ def personal_post_question():
             errors = True
 
         if title and len(title) < 15:
-            flash('Title is too short')
+            flash('Title is too short.')
             errors = True
 
         if errors:

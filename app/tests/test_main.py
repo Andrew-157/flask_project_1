@@ -19,7 +19,7 @@ def test_index(client, auth: AuthActions):
     assert b'Change profile' in response.data
 
 
-def test_post_question(client, auth: AuthActions):
+def test_post_question(client, auth: AuthActions, app):
     auth.login()
     assert client.get('/questions/ask/').status_code == 200
     response: Response = client.post('/questions/ask/',
@@ -32,6 +32,14 @@ def test_post_question(client, auth: AuthActions):
     assert response.status_code == 302
     assert response.headers['Location'] == '/'
     assert messages['success'] == 'You successfully asked new question!'
+    with app.app_context():
+        test_user = db.session.query(User).filter_by(
+            username='test_user').first()
+        question = db.session.query(Question).filter(
+            (Question.user_id == test_user.id) &
+            (Question.title == 'How to iterate through Python List?')
+        ).first()
+        assert question is not None
 
 
 @pytest.mark.parametrize(('title', 'message'),
@@ -941,3 +949,58 @@ def test_public_page(client):
 def test_public_page_for_nonexistent_user(client):
     response = client.get("/users/fghjkliugyhjkihug/")
     assert response.status_code == 404
+
+
+def test_personal_post_question(client, auth: AuthActions):
+    auth.login()
+    assert client.get('/personal/questions/ask/').status_code == 200
+    response: Response = client.post('/personal/questions/ask/',
+                                     data={'title': 'How to iterate through Python List?',
+                                           'details': 'I am only starting to learn Python,\
+                                do not know how to iterate through list',
+                                           'tags': 'python, iteration, programming'})
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/personal/page/'
+    assert messages['success'] == 'You successfully asked new question!'
+
+
+@pytest.mark.parametrize(('title', 'message'),
+                         (
+    ('', b'Title is required to post a question.'),
+    ('dfrg',  b'Title is too short.')
+))
+def test_personal_post_question_validate_input(client, auth: AuthActions, title, message):
+    auth.login()
+    response: Response = client.post('/personal/questions/ask/',
+                                     data={'title': title,
+                                           'details': '',
+                                           'tags': ''})
+    assert response.status_code == 200
+    assert message in response.data
+
+
+def test_personal_post_question_for_not_logged_user(client):
+    response = client.get('/personal/questions/ask/')
+    assert response.status_code == 302
+    assert (response.headers["Location"].startswith("/auth/login/"))
+
+
+def test_search_with_empty_query(client):
+    response = client.get("/questions/search/?query=")
+    assert response.status_code == 200
+
+
+def test_search_with_empty_query_that_starts_with_hashtag_sign(client):
+    response = client.get("/questions/search/?query=#")
+    assert response.status_code == 200
+
+
+def test_search_for_question(client):
+    query = "How"
+    response = client.get(f"/questions/search/?query={query}")
+    print(response.data)
+    assert response.status_code == 200
+    assert f"Number of questions found with <mark>{query}</mark>".encode(
+        "utf-8") in response.data
