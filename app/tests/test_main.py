@@ -3,7 +3,7 @@ from flask import Response
 from werkzeug.security import generate_password_hash
 from .conftest import AuthActions
 from .. import db
-from ..models import User, Question, QuestionVote, QuestionViews, Answer
+from ..models import User, Question, QuestionVote, QuestionViews, Answer, AnswerVote
 
 
 def test_index(client, auth: AuthActions):
@@ -695,3 +695,223 @@ def test_delete_answer_by_not_logged_user(client):
     response = client.post("/answers/56789/delete/")
     assert response.status_code == 302
     assert (response.headers["Location"].startswith('/auth/login/'))
+
+
+def test_upvote_answer_for_logged_user_without_vote(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.post(f'/answers/{answer.id}/upvote/')
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{answer.question_id}/'
+
+    with app.app_context():
+        upvote = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.user_id == test_user.id) &
+            (AnswerVote.is_upvote == True)
+        ).first()
+        assert upvote is not None
+
+
+def test_upvote_answer_for_logged_user_with_upvote(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        upvote = AnswerVote(user=test_user,
+                            answer=answer, is_upvote=True)
+        db.session.add(upvote)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.post(f'/answers/{answer.id}/upvote/')
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{answer.question_id}/'
+
+    with app.app_context():
+        upvote = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.user_id == test_user.id) &
+            (AnswerVote.is_upvote == True)
+        ).first()
+        assert upvote is None
+
+
+def test_upvote_answer_for_logged_user_with_downvote(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        downvote = AnswerVote(user=test_user,
+                              answer=answer, is_upvote=False)
+        db.session.add(downvote)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.post(f'/answers/{answer.id}/upvote/')
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{answer.question_id}/'
+
+    with app.app_context():
+        upvote = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.user_id == test_user.id) &
+            (AnswerVote.is_upvote == True)
+        ).first()
+        assert upvote is not None
+
+
+def test_upvote_answer_for_not_logged_user(app, client):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer)
+
+    response = client.post(f"/answers/{answer.id}/upvote/")
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{answer.question_id}/'
+    assert messages['info'] == 'To vote for an answer, become authenticated user.'
+
+
+def test_upvote_nonexistent_answer(app, client):
+    response = client.post("/answers/564/upvote/")
+    assert response.status_code == 404
+
+
+def test_downvote_answer_for_logged_user_without_vote(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.post(f'/answers/{answer.id}/downvote/')
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{answer.question_id}/'
+
+    with app.app_context():
+        downvote = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.user_id == test_user.id) &
+            (AnswerVote.is_upvote == False)
+        ).first()
+        assert downvote is not None
+
+
+def test_downvote_answer_for_logged_user_with_downvote(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        downvote = AnswerVote(user=test_user,
+                              answer=answer, is_upvote=False)
+        db.session.add(downvote)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.post(f'/answers/{answer.id}/downvote/')
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{answer.question_id}/'
+
+    with app.app_context():
+        downvote = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.user_id == test_user.id) &
+            (AnswerVote.is_upvote == False)
+        ).first()
+        assert downvote is None
+
+
+def test_downvote_answer_for_logged_user_with_downvote(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        upvote = AnswerVote(user=test_user,
+                            answer=answer, is_upvote=True)
+        db.session.add(upvote)
+        db.session.commit()
+        db.session.refresh(answer)
+        db.session.refresh(test_user)
+
+    auth.login()
+    response = client.post(f'/answers/{answer.id}/downvote/')
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{answer.question_id}/'
+
+    with app.app_context():
+        downvote = db.session.query(AnswerVote).filter(
+            (AnswerVote.answer_id == answer.id) &
+            (AnswerVote.user_id == test_user.id) &
+            (AnswerVote.is_upvote == False)
+        ).first()
+        assert downvote is not None
+
+
+def test_downvote_answer_for_not_logged_user(app, client):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user,
+                        question=question, content="My answer to your question.")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer)
+
+    response = client.post(f"/answers/{answer.id}/downvote/")
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{answer.question_id}/'
+    assert messages['info'] == 'To vote for an answer, become authenticated user.'
+
+
+def test_downvote_nonexistent_answer(app, client):
+    response = client.post("/answers/564/upvote/")
+    assert response.status_code == 404
