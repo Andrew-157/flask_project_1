@@ -2,8 +2,8 @@ from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash
 
 import pytest
-from .. import create_app, db
-from ..models import User
+from app import create_app, db
+from app.models import User
 
 
 load_dotenv()

@@ -4,8 +4,8 @@ from flask import session
 from flask_login import current_user
 from werkzeug.security import generate_password_hash
 from .conftest import AuthActions
-from .. import db
-from ..models import User
+from app import db
+from app.models import User
 
 
 def test_register(client, app):

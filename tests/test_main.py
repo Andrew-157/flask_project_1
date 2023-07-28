@@ -2,8 +2,8 @@ import pytest
 from flask import Response
 from werkzeug.security import generate_password_hash
 from .conftest import AuthActions
-from .. import db
-from ..models import User, Question, QuestionVote, QuestionViews, Answer, AnswerVote
+from app import db
+from app.models import User, Question, QuestionVote, QuestionViews, Answer, AnswerVote
 
 
 def test_index(client, auth: AuthActions):
