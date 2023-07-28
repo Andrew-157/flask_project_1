@@ -7,27 +7,27 @@ from . import db
 bp = Blueprint('main', __name__)
 
 
-def split_tags_string(tags: str):
+def split_tags_string(tags_str: str) -> list[str]:
     # Takes a string of tags as an argument
     # and returns list of edited tags
     # For example:
     # 'python 3.x, javascript, ruby on rails ' will be
     # turned in ['python-3.x', 'javascript', 'ruby-on-rails']
     # and returned
+    tags_to_return = []
+    tags_list = tags_str.split(',')
+    for tag in tags_list:
+        if tag.isspace():
+            pass
+        elif not tag:
+            pass
+        else:
+            tags_to_return.append(tag.strip())
 
-    if tags[-1] == ',':
-        tags = tags[:-1]
-    if tags[0] == ',':
-        tags = tags[1:]
-    tags_list = tags.split(',')
-    for index, tag in enumerate(tags_list):
-        tags_list[index] = tag.strip()
+    for index, tag in enumerate(tags_to_return):
+        tags_to_return[index] = '-'.join(tag.split(' '))
 
-    for index, tag in enumerate(tags_list):
-        if ' ' in tag:
-            tags_list[index] = '-'.join(tag.split(' '))
-
-    return tags_list
+    return tags_to_return
 
 
 def upvote_downvote_question(question_id: int, user_id: int, is_upvote: bool):
@@ -121,6 +121,7 @@ def post_question():
         title = request.form['title']
         details = request.form['details']
         tags = request.form['tags']
+        print(tags)
         errors = False
 
         if not title:
@@ -145,6 +146,7 @@ def post_question():
         db.session.add(question)
 
         if tags.strip():
+            print(tags)
             tags = split_tags_string(tags)
             for tag in tags:
                 existing_tag = db.session.execute(
