@@ -121,7 +121,6 @@ def post_question():
         title = request.form['title']
         details = request.form['details']
         tags = request.form['tags']
-        print(tags)
         errors = False
 
         if not title:
@@ -146,7 +145,6 @@ def post_question():
         db.session.add(question)
 
         if tags.strip():
-            print(tags)
             tags = split_tags_string(tags)
             for tag in tags:
                 existing_tag = db.session.execute(
@@ -267,7 +265,8 @@ def update_question(id):
 def question_detail(id):
 
     question = db.session.query(Question).\
-        options(db.joinedload(Question.times_viewed), db.joinedload(Question.user)).\
+        options(db.joinedload(Question.times_viewed), db.joinedload(Question.user),
+                db.joinedload(Question.tags)).\
         filter_by(id=id).first()
 
     if not question:
