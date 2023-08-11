@@ -1,4 +1,4 @@
-Flask Project 'Asklee'
+# Flask Project 'Asklee'
 
 ### Usage
 
@@ -130,3 +130,8 @@ To run particular test in a module, run:
 ```
     pytest tests/test_auth.py::test_register 
 ``` 
+
+### Inspiration
+
+Main inspiration for `Asklee` comes from sites like [Stack Overflow](https://stackoverflow.com/)
+and [Quora](https://www.quora.com/). 
