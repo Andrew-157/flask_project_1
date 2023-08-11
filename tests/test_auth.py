@@ -50,6 +50,18 @@ def test_register_validate_input(client, username, email, password, password1, m
     assert message in response.data
 
 
+def test_register_with_empty_data(client):
+    response: Response = client.post('/auth/register/',
+                                     data={})
+    assert response.status_code == 400
+
+
+def test_register_with_no_data(client):
+    response: Response = client.post('/auth/register/',
+                                     data=None)
+    assert response.status_code == 400
+
+
 def test_login(client, auth: AuthActions):
     assert client.get('/auth/login/').status_code == 200
     response = auth.login()
@@ -73,6 +85,16 @@ def test_login(client, auth: AuthActions):
 def test_login_validate_input(auth: AuthActions, email, password, message):
     response = auth.login(email, password)
     assert message in response.data
+
+
+def test_login_with_empty_data(client):
+    response: Response = client.post('/auth/login/', data={})
+    assert response.status_code == 400
+
+
+def test_login_with_no_data(client):
+    response: Response = client.post('/auth/login/', data=None)
+    assert response.status_code == 400
 
 
 def test_logout(client, auth: AuthActions):
@@ -126,6 +148,20 @@ def test_change_profile_validate_input(app, client, auth: AuthActions, username,
                                            'email': email})
     assert response.status_code == 200
     assert message in response.data
+
+
+def test_change_profile_with_empty_data(client, auth: AuthActions):
+    auth.login()
+    response: Response = client.post('/auth/change_profile/',
+                                     data={})
+    assert response.status_code == 400
+
+
+def test_change_profile_with_no_data(client, auth: AuthActions):
+    auth.login()
+    response: Response = client.post('/auth/change_profile/',
+                                     data=None)
+    assert response.status_code == 400
 
 
 def test_change_profile_for_not_logged_user(app, client):

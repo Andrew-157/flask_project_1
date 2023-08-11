@@ -57,6 +57,19 @@ def test_post_question_validate_input(client, auth: AuthActions, title, message)
     assert message in response.data
 
 
+def test_post_question_with_empty_data(client, auth: AuthActions):
+    auth.login()
+    response: Response = client.post('/questions/ask/',
+                                     data={})
+    assert response.status_code == 400
+
+
+def test_post_question_with_no_data(client, auth: AuthActions):
+    auth.login()
+    response: Response = client.post('/questions/ask/', data=None)
+    assert response.status_code == 400
+
+
 def test_post_question_for_not_logged_user(client):
     response = client.get('/questions/ask/')
     with client.session_transaction() as session:
@@ -117,6 +130,38 @@ def test_update_question_validate_input_for_question_owner(app, client, auth: Au
                                  'tags': ''})
     assert response.status_code == 200
     assert message in response.data
+
+
+def test_question_owner_updates_question_with_empty_data(app, client, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+
+    auth.login()
+    response: Response = client.post(f'/questions/{question.id}/update/',
+                                     data={})
+    assert response.status_code == 400
+
+
+def test_question_owner_updates_question_with_no_data(app, client, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+
+    auth.login()
+    response: Response = client.post(f'/questions/{question.id}/update/',
+                                     data=None)
+    assert response.status_code == 400
 
 
 def test_update_question_by_user_that_does_not_own_question(app, client, auth: AuthActions):
@@ -524,6 +569,38 @@ def test_post_answer_validate_input(client, app, auth: AuthActions, content, mes
     assert message in response.data
 
 
+def test_post_answer_with_empty_data(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+
+    auth.login()
+    response: Response = client.post(f'/questions/{question.id}/answer/',
+                                     data={})
+    assert response.status_code == 400
+
+
+def test_post_answer_with_no_data(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        db.session.add(question)
+        db.session.commit()
+        db.session.refresh(question)
+
+    auth.login()
+    response: Response = client.post(f'/questions/{question.id}/answer/',
+                                     data=None)
+    assert response.status_code == 400
+
+
 def test_post_answer_for_not_logged_user(client, app):
     with app.app_context():
         test_user = db.session.query(User).\
@@ -605,6 +682,42 @@ def test_update_answer_by_logged_user_that_owns_answer_validate_input(client,
                            data={'content': content})
     assert response.status_code == 200
     assert message in response.data
+
+
+def test_update_answer_with_empty_data(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user, question=question,
+                        content="My answer to your question")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer)
+
+    auth.login()
+    response: Response = client.post(f'/answers/{answer.id}/update/',
+                                     data={})
+    assert response.status_code == 400
+
+
+def test_update_answer_with_no_data(client, app, auth: AuthActions):
+    with app.app_context():
+        test_user = db.session.query(User).\
+            filter_by(username='test_user').first()
+        question = Question(user=test_user,
+                            title='How to iterate through Python List?')
+        answer = Answer(user=test_user, question=question,
+                        content="My answer to your question")
+        db.session.add(answer)
+        db.session.commit()
+        db.session.refresh(answer)
+
+    auth.login()
+    response: Response = client.post(f'/answers/{answer.id}/update/',
+                                     data=None)
+    assert response.status_code == 400
 
 
 def test_update_answer_for_logged_user_that_does_not_own_answer(client, app, auth: AuthActions):
