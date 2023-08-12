@@ -105,7 +105,7 @@ Next, go to .env and using credentials of your database, add the following lines
 
 After that, in command line run:
 ```
-    alembic upgrade head
+    flask db upgrade
     python run.py
 ```
 
