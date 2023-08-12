@@ -25,7 +25,7 @@ users' info(username and email).
 
 ### Installation
 
-To work with this project you need Python3.9+ installed on your machine
+To work with this project you need `Python` installed on your machine
 
 If you do not have Python installed, visit official documentation and install it: https://www.python.org/downloads/
 
@@ -35,7 +35,7 @@ Clone repository, using command:
 ```
 and go into directory 'flask_project_1'.
 
-**Everything shown below assumes you are working from directory 'dj_project_3'**
+**Everything shown below assumes you are working from directory 'flask_project_1'**
 
 Requirements:
 ```
@@ -110,6 +110,12 @@ After that, in command line run:
 ```
 
 Go to your browser at the address: 'http://127.0.0.1:5000/', you should be able to see `Asklee`'s index page.
+
+### Usage specifics
+
+`Asklee` has 3 configurations(you can find them in in root directory in file 'config.py'): for development,
+for testing and for production. To run application in development mode(DEBUG=True) or testing mode(TESTING=True), you need to explicitly pass 'config_name' in `application factory`(create_app) argument with values 'development' or 'testing' for development and testing, respectively. 'production' configuration
+is set by default.
 
 ### Testing
 
