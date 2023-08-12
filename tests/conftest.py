@@ -12,11 +12,7 @@ load_dotenv()
 @pytest.fixture
 def app():
 
-    app = create_app({
-        "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": 'sqlite:///:memory:',
-        "WTF_CSRF_ENABLED": False
-    })
+    app = create_app(config_name='testing')
 
     with app.app_context():
         db.create_all()

@@ -105,8 +105,8 @@ Next, go to .env and using credentials of your database, add the following lines
 
 After that, in command line run:
 ```
-    python manage.py migrate
-    python manage.py runserver
+    alembic upgrade head
+    python run.py
 ```
 
 Go to your browser at the address: 'http://127.0.0.1:5000/', you should be able to see `Asklee`'s index page.
