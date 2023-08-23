@@ -96,6 +96,7 @@ Then you need to create MySQL database(using MySQL Workbench or any other tool),
 
 Next, go to .env and using credentials of your database, add the following lines:
 ```
+    DB_ENGINE=mysql
     DB_NAME=<your_database_name>
     DB_USER=<your_database_user>
     DB_PASSWORD=<your_database_password>
