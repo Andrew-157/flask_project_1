@@ -77,6 +77,12 @@ def test_post_question_for_not_logged_user(client):
     assert response.status_code == 302
     assert response.headers['Location'] == '/'
     assert messages['info'] == 'You need to be authenticated to ask a question.'
+    response = client.post('/questions/ask/')
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers['Location'] == '/'
+    assert messages['info'] == 'You need to be authenticated to ask a question.'
 
 
 def test_update_question_for_question_owner(client, app, auth: AuthActions):
@@ -195,11 +201,16 @@ def test_update_question_for_not_logged_user(client, app):
     response = client.get(f'/questions/{question.id}/update/')
     assert response.status_code == 302
     assert (response.headers["Location"].startswith('/auth/login/'))
+    response = client.post(f'/questions/{question.id}/update/')
+    assert response.status_code == 302
+    assert (response.headers["Location"].startswith('/auth/login/'))
 
 
 def test_update_nonexistent_question_for_logged_user(client, app, auth: AuthActions):
     auth.login()
     response = client.get('/questions/7890/update/')
+    assert response.status_code == 404
+    response = client.post('/questions/7890/update/')
     assert response.status_code == 404
 
 
@@ -616,6 +627,12 @@ def test_post_answer_for_not_logged_user(client, app):
     assert response.status_code == 302
     assert response.headers["Location"] == f'/questions/{question.id}/'
     assert messages['info'] == 'To leave an answer for a question, become an authenticated user.'
+    response = client.post(f'/questions/{question.id}/answer/')
+    with client.session_transaction() as session:
+        messages = dict(session['_flashes'])
+    assert response.status_code == 302
+    assert response.headers["Location"] == f'/questions/{question.id}/'
+    assert messages['info'] == 'To leave an answer for a question, become an authenticated user.'
 
 
 def test_post_answer_for_nonexistent_question(client):
@@ -741,10 +758,15 @@ def test_update_answer_for_logged_user_that_does_not_own_answer(client, app, aut
                password='34somepassword34')
     response = client.get(f'/answers/{answer.id}/update/')
     assert response.status_code == 403
+    response = client.post(f'/answers/{answer.id}/update/')
+    assert response.status_code == 403
 
 
 def test_update_answer_for_not_logged_user(client):
     response = client.get('/answers/5678/update/')
+    assert response.status_code == 302
+    assert (response.headers["Location"].startswith('/auth/login/'))
+    response = client.post('/answers/5678/update/')
     assert response.status_code == 302
     assert (response.headers["Location"].startswith('/auth/login/'))
 
@@ -752,6 +774,8 @@ def test_update_answer_for_not_logged_user(client):
 def test_update_nonexistent_answer_by_logged_user(client, auth: AuthActions):
     auth.login()
     response = client.get("/answers/67890/update/")
+    assert response.status_code == 404
+    response = client.post("/answers/67890/update/")
     assert response.status_code == 404
 
 
