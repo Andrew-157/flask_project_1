@@ -168,3 +168,6 @@ def test_change_profile_for_not_logged_user(app, client):
     response: Response = client.get('/auth/change_profile/')
     assert response.status_code == 302
     assert (response.headers['Location'].startswith('/auth/login/'))
+    response: Response = client.post('/auth/change_profile/')
+    assert response.status_code == 302
+    assert (response.headers['Location'].startswith('/auth/login/'))
